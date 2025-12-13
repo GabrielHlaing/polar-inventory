@@ -1,0 +1,171 @@
+import { useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useProfile } from "../contexts/ProfileContext";
+import { useAuth } from "../contexts/AuthContext";
+import { Card, Badge, Button, Form, Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
+
+export default function Profile() {
+  const { profile, premiumExpiresAt } = useProfile();
+  const { logout } = useAuth();
+
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNew, setConfirmNew] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isPremium = profile?.tier === "premium";
+
+  const updatePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmNew) {
+      toast.warning("Please fill all fields.");
+      return;
+    }
+    if (newPassword !== confirmNew) {
+      toast.warning("New passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    // verify old password
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: profile.email,
+      password: oldPassword,
+    });
+    if (loginError) {
+      setLoading(false);
+      toast.error("Old password is incorrect.");
+      return;
+    }
+    // update
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setLoading(false);
+    if (error) toast.error("Failed to update password.");
+    else {
+      toast.success("Password updated!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmNew("");
+    }
+  };
+
+  if (!profile) return <p className="p-4 text-muted">Loading profile...</p>;
+
+  /* ---------- visual helpers ---------- */
+  const PremiumCard = ({ children }) => (
+    <Card
+      className="border-0 shadow-lg mb-4"
+      style={{
+        background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
+        boxShadow: "0 0 20px rgba(253, 203, 110, .6)",
+        color: "#744210",
+      }}
+    >
+      <Card.Body>{children}</Card.Body>
+    </Card>
+  );
+
+  const FreeCard = ({ children }) => (
+    <Card className="bg-light text-muted border-0 shadow-sm mb-4">
+      <Card.Body>{children}</Card.Body>
+    </Card>
+  );
+
+  const TierBadge = () =>
+    isPremium ? (
+      <Badge
+        bg="warning"
+        text="dark"
+        className="ms-auto"
+        style={{ fontSize: "0.75rem", letterSpacing: ".5px" }}
+      >
+        ★ PREMIUM
+      </Badge>
+    ) : (
+      <Badge bg="secondary" className="ms-auto">
+        Free
+      </Badge>
+    );
+
+  return (
+    <div className="container py-4" style={{ maxWidth: 520, marginBottom: 80 }}>
+      <h1 className="fw-bold mb-4">Profile</h1>
+
+      {/* ---- info card ---- */}
+      {isPremium ? (
+        <PremiumCard>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="fw-bold">{profile.name}</span>
+            <TierBadge />
+          </div>
+          <div className="small mb-1">Email: {profile.email}</div>
+          <div className="small">
+            Expires:{" "}
+            {premiumExpiresAt ? premiumExpiresAt.toLocaleDateString() : "—"}
+          </div>
+        </PremiumCard>
+      ) : (
+        <FreeCard>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span>{profile.name}</span>
+            <TierBadge />
+          </div>
+          <div className="small">Email: {profile.email}</div>
+        </FreeCard>
+      )}
+
+      {/* ---- password change ---- */}
+      <Card className="border-0 shadow-sm">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Change Password</h5>
+
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="password"
+              placeholder="Old password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              disabled={loading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={loading}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="password"
+              placeholder="Confirm new password"
+              value={confirmNew}
+              onChange={(e) => setConfirmNew(e.target.value)}
+              disabled={loading}
+            />
+          </Form.Group>
+
+          <Button
+            variant={isPremium ? "warning" : "secondary"}
+            className="rounded-pill px-4 me-2"
+            onClick={updatePassword}
+            disabled={loading}
+          >
+            {loading ? (
+              <Spinner animation="border" size="sm" />
+            ) : (
+              "Update Password"
+            )}
+          </Button>
+
+          <Button variant="outline-dark" size="sm" onClick={logout}>
+            Log out
+          </Button>
+        </Card.Body>
+      </Card>
+    </div>
+  );
+}

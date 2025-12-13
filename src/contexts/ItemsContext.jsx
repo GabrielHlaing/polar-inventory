@@ -1,0 +1,182 @@
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useProfile } from "./ProfileContext";
+import { idbPut, idbGetAll, idbDelete, idbClear, STORE_NAMES } from "../idb";
+
+const ItemsContext = createContext();
+// eslint-disable-next-line react-refresh/only-export-components
+export const useItems = () => useContext(ItemsContext);
+
+export function ItemsProvider({ children }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const { isPremium } = useProfile();
+
+  const FREE_LIMIT = 20;
+  const PREMIUM_LIMIT = 1500;
+
+  // -------------------------
+  // LOAD ITEMS
+  // -------------------------
+  async function loadItems() {
+    setLoading(true);
+
+    const cached = await idbGetAll(STORE_NAMES.INVENTORY);
+    setItems(cached);
+
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from("inventory")
+        .select("*")
+        .order("name");
+
+      if (!error && data) {
+        setItems(data);
+        await idbClear(STORE_NAMES.INVENTORY);
+        for (const item of data) {
+          await idbPut(STORE_NAMES.INVENTORY, item);
+        }
+      }
+    }
+
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  // -------------------------
+  // ADD ITEM
+  // -------------------------
+  async function addItem(payload) {
+    const limit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
+    if (items.length >= limit) {
+      return { error: { message: `Item limit reached (${limit}).` } };
+    }
+
+    const newItem = {
+      id: crypto.randomUUID(),
+      ...payload,
+      created_at: new Date().toISOString(),
+    };
+
+    await idbPut(STORE_NAMES.INVENTORY, newItem);
+    setItems((p) => [...p, newItem]);
+
+    if (!navigator.onLine) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "add",
+        created_at: Date.now(),
+        payload: newItem,
+      });
+      return { data: newItem };
+    }
+
+    const { error } = await supabase.from("inventory").insert(newItem);
+    if (error) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "add",
+        created_at: Date.now(),
+        payload: newItem,
+      });
+    } else {
+      await loadItems();
+    }
+
+    return { data: newItem };
+  }
+
+  // -------------------------
+  // UPDATE ITEM
+  // -------------------------
+  async function updateItem(id, payload) {
+    const updated = { id, ...payload };
+
+    await idbPut(STORE_NAMES.INVENTORY, updated);
+    setItems((p) => p.map((i) => (i.id === id ? updated : i)));
+
+    if (!navigator.onLine) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "update",
+        created_at: Date.now(),
+        itemId: id,
+        payload,
+      });
+      return { data: updated };
+    }
+
+    const { error } = await supabase
+      .from("inventory")
+      .update(payload)
+      .eq("id", id);
+
+    if (error) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "update",
+        created_at: Date.now(),
+        itemId: id,
+        payload,
+      });
+    } else {
+      await loadItems();
+    }
+
+    return { data: updated };
+  }
+
+  // -------------------------
+  // DELETE ITEM
+  // -------------------------
+  async function deleteItem(id) {
+    await idbDelete(STORE_NAMES.INVENTORY, id);
+    setItems((p) => p.filter((i) => i.id !== id));
+
+    if (!navigator.onLine) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "delete",
+        created_at: Date.now(),
+        itemId: id,
+      });
+      return {};
+    }
+
+    const { error } = await supabase.from("inventory").delete().eq("id", id);
+
+    if (error) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "delete",
+        created_at: Date.now(),
+        itemId: id,
+      });
+    } else {
+      await loadItems();
+    }
+
+    return {};
+  }
+
+  return (
+    <ItemsContext.Provider
+      value={{
+        items,
+        loading,
+        addItem,
+        updateItem,
+        deleteItem,
+        loadItems,
+        FREE_LIMIT,
+        PREMIUM_LIMIT,
+      }}
+    >
+      {children}
+    </ItemsContext.Provider>
+  );
+}
