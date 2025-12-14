@@ -6,6 +6,7 @@ import { useProfile } from "../contexts/ProfileContext";
 import { Button, Card, Badge, Placeholder } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaEnvelope, FaPhone } from "react-icons/fa";
+import FabBack from "./FabBack";
 
 export default function PrintInvoice() {
   const { id } = useParams();
@@ -52,6 +53,8 @@ export default function PrintInvoice() {
       scale: 3,
       backgroundColor: "#ffffff",
       width: 380, // 58 mm thermal paper width (mobile first)
+      scrollX: 0,
+      scrollY: 0,
       useCORS: true,
       allowTaint: false,
     });
@@ -88,7 +91,7 @@ export default function PrintInvoice() {
   const Receipt = () => (
     <Card
       ref={invoiceRef}
-      className="border-0 shadow-sm mx-auto"
+      className="border-0 shadow-sm"
       style={{
         maxWidth: 380,
         background: "linear-gradient(135deg, #ffffff 0%, #f9fbfd 100%)",
@@ -231,7 +234,7 @@ export default function PrintInvoice() {
               borderTop: `1px dashed ${tint(shop.color, "33")}`,
             }}
           >
-            {shop.footer}
+            <i>{shop.footer}</i>
           </div>
         )}
       </Card.Body>
@@ -240,35 +243,45 @@ export default function PrintInvoice() {
 
   return (
     <div
-      className="container py-3"
-      style={{ background: shop.color + "08", minHeight: "100vh" }}
+      className="py-3 px-0 pt-5"
+      style={{ background: "#D3D3D3", minHeight: "100vh" }}
     >
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Button
-          variant="outline-secondary"
-          size="sm"
-          onClick={() => window.history.back()}
-        >
-          ← Back
-        </Button>
-        <Button
-          variant="dark"
-          size="sm"
-          onClick={downloadPNG}
-          disabled={downloading || !logoOk}
-        >
-          {downloading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" />
-              Saving…
-            </>
-          ) : (
-            "Save PNG"
-          )}
-        </Button>
-      </div>
+      <FabBack />
 
-      <Receipt />
+      <h1 className="fw-bold mb-4 text-center">Preview Invoice</h1>
+
+      {/* Centered receipt column */}
+      <div className="d-flex flex-column align-items-center">
+        <div
+          className="mx-auto"
+          style={{
+            width: 380, // same as receipt
+            maxWidth: "100%",
+            overflowX: "auto", // allows pinch-scroll on tiny screens
+          }}
+        >
+          <Receipt />
+        </div>
+
+        <div className="mt-3 mb-2">
+          <Button
+            variant="dark"
+            size="sm"
+            className="px-4 rounded-pill"
+            onClick={downloadPNG}
+            disabled={downloading || !logoOk}
+          >
+            {downloading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Saving…
+              </>
+            ) : (
+              "Save PNG"
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -39,14 +39,23 @@ export default function ItemDetails() {
   };
 
   const saveUpdates = async () => {
+    const qty = Number(editQty);
+
+    if (!Number.isFinite(qty) || qty < 0) {
+      toast.error("Quantity cannot be negative");
+      return;
+    }
+
     await updateItem(id, {
-      name: editName,
-      qty: Number(editQty),
-      purchase_price: editPurchase === "" ? null : Number(editPurchase),
-      sale_price: editSale === "" ? null : Number(editSale),
+      name: editName.trim(),
+      qty,
+      purchase_price:
+        editPurchase === "" ? null : Math.max(0, Number(editPurchase)),
+      sale_price: editSale === "" ? null : Math.max(0, Number(editSale)),
       mfg_date: editMfg || null,
       exp_date: editExp || null,
     });
+
     toast.success("Item updated");
     setShowEdit(false);
   };
@@ -185,8 +194,29 @@ export default function ItemDetails() {
               <Form.Label>Quantity</Form.Label>
               <Form.Control
                 type="number"
+                min={0}
+                inputMode="numeric"
                 value={editQty}
-                onChange={(e) => setEditQty(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+
+                  // allow empty while typing
+                  if (val === "") {
+                    setEditQty("");
+                    return;
+                  }
+
+                  // block negatives
+                  if (Number(val) < 0) return;
+
+                  setEditQty(val);
+                }}
+                onBlur={() => {
+                  // normalize on blur
+                  if (editQty === "") {
+                    setEditQty(0);
+                  }
+                }}
               />
             </Form.Group>
             <Form.Group className="mb-3">

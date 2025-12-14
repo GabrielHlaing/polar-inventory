@@ -20,26 +20,34 @@ const PRESET_COLORS = [
   { name: "Mint", value: "#319795" },
   { name: "Gold", value: "#d69e2e" },
   { name: "Indigo", value: "#5a67d8" },
+  { name: "Slate", value: "#4a5568" },
+  { name: "Teal", value: "#0f766e" },
+  { name: "Cocoa", value: "#8b5e3c" },
+  { name: "Charcoal", value: "#2d3748" },
 ];
 
 /* 15 fonts (3 calligraphic) */
 const FONT_OPTIONS = [
+  // --- Sans (Professional / Default) ---
   { label: "Inter", value: "Inter, sans-serif" },
   { label: "Roboto", value: "Roboto, sans-serif" },
   { label: "Montserrat", value: "Montserrat, sans-serif" },
   { label: "Poppins", value: "Poppins, sans-serif" },
-  { label: "Source Sans Pro", value: "Source Sans Pro, sans-serif" },
   { label: "Open Sans", value: "Open Sans, sans-serif" },
-  { label: "Lato", value: "Lato, sans-serif" },
-  { label: "Raleway", value: "Raleway, sans-serif" },
-  { label: "Ubuntu", value: "Ubuntu, sans-serif" },
+
+  // --- Serif (Elegant / Formal) ---
   { label: "Merriweather", value: "Merriweather, serif" },
   { label: "Playfair Display", value: "Playfair Display, serif" },
   { label: "Crimson Text", value: "Crimson Text, serif" },
-  /* ---- calligraphic ---- */
+
+  // --- Calligraphic (Stylish but readable) ---
   { label: "Dancing Script", value: "Dancing Script, cursive" },
-  { label: "Pacifico", value: "Pacifico, cursive" },
+  { label: "Caveat", value: "Caveat, cursive" },
+  { label: "Satisfy", value: "Satisfy, cursive" },
+  { label: "Kalam", value: "Kalam, cursive" },
   { label: "Great Vibes", value: "Great Vibes, cursive" },
+  { label: "Allura", value: "Allura, cursive" },
+  { label: "Alex Brush", value: "Alex Brush, cursive" },
 ];
 
 export default function SettingsPage() {
@@ -321,14 +329,16 @@ export default function SettingsPage() {
                 {c.name}
               </Button>
             ))}
-
+          </div>
+          <div className="px-3">
+            <p className="text-muted fw-semibold">Choose Custom Color</p>
             <Form.Control
               type="color"
               value={form.theme_color}
               onChange={(e) => handleChange("theme_color", e.target.value)}
               disabled={disabled}
               className="rounded-pill"
-              style={{ width: 42, height: 42, padding: 2 }}
+              style={{ width: 42, height: 42, padding: 0 }}
             />
           </div>
         </Card.Body>
@@ -339,23 +349,33 @@ export default function SettingsPage() {
         <Card.Body>
           <h5 className="fw-semibold mb-3">Invoice Font</h5>
 
-          <Form.Select
-            value={form.invoice_font}
-            onChange={(e) => handleChange("invoice_font", e.target.value)}
-            disabled={disabled}
-            className="mb-3 rounded-pill"
-            style={{ fontFamily: form.invoice_font }}
-          >
-            {FONT_OPTIONS.map((f) => (
-              <option
-                key={f.value}
-                value={f.value}
-                style={{ fontFamily: f.value }}
-              >
-                {f.label}
-              </option>
-            ))}
-          </Form.Select>
+          <div className="d-flex flex-wrap gap-2">
+            {FONT_OPTIONS.map((f) => {
+              const active = form.invoice_font === f.value;
+
+              return (
+                <Button
+                  key={f.value}
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => handleChange("invoice_font", f.value)}
+                  className="px-3 py-2 rounded-pill border-0"
+                  style={{
+                    fontFamily: f.value,
+                    background: active ? form.theme_color : "#f1f3f5",
+                    color: active ? "#fff" : "#212529",
+                    boxShadow: active
+                      ? `0 0 0 3px ${form.theme_color}44`
+                      : "none",
+                    transform: active ? "scale(1.05)" : "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {f.label}
+                </Button>
+              );
+            })}
+          </div>
         </Card.Body>
       </Card>
 

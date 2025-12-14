@@ -25,11 +25,17 @@ export default function InvoiceCard({
   const customer = data.customer;
   const isPurchase = data.type === "purchase";
 
-  const formattedDate = new Date(data.created_at).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const formattedDateTime = new Date(data.created_at).toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }
+  );
 
   const getPrice = (item) =>
     isPurchase
@@ -133,7 +139,7 @@ export default function InvoiceCard({
             <div className="fw-bold fs-6">
               Invoice #{invoice.invoice_number}
             </div>
-            <small className="text-muted">{formattedDate}</small>
+            <small className="text-muted">{formattedDateTime}</small>
           </div>
 
           <div className="text-end">

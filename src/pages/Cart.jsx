@@ -73,7 +73,7 @@ export default function CartPage() {
   const cartExceedsStock = () =>
     cartState.some((c) => {
       const inv = items.find((i) => i.id === c.id);
-      return inv && c.qty > inv.qty;
+      return inv && c.type === "sale" && c.qty > inv.qty;
     });
 
   /* ---------- checkout ---------- */
