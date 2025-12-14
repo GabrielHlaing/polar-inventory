@@ -6,6 +6,9 @@ import InvoicePreviewModal from "../components/InvoicePreviewModal";
 import { Button, Form, Card, Badge } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { supabase } from "../supabaseClient";
+import Navbar from "../components/Navbar";
+import Header from "../components/Header";
+import useUpToHome from "../hooks/useUpToHome";
 
 /* 8 premium preset colours */
 const PRESET_COLORS = [
@@ -40,14 +43,9 @@ const FONT_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-  const {
-    profile,
-    updateSettings,
-    loading,
-    isAdmin,
-    isPremium,
-    premiumExpiresAt,
-  } = useProfile();
+  useUpToHome();
+  const { profile, updateSettings, loading, isPremium, premiumExpiresAt } =
+    useProfile();
 
   const disabled = !isPremium;
 
@@ -208,82 +206,10 @@ export default function SettingsPage() {
 
   if (loading) return <p className="p-4">Loading settings...</p>;
 
-  /* ---------- sub-components for premium styling ---------- */
-  const Section = ({ title, children }) => (
-    <Card className="shadow-sm border-0 mb-4">
-      <Card.Body>
-        <h5 className="fw-semibold mb-3">{title}</h5>
-        {children}
-      </Card.Body>
-    </Card>
-  );
-
-  const PremiumInput = ({
-    value,
-    onChange,
-    placeholder,
-    disabled,
-    type = "text",
-  }) => (
-    <Form.Control
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-      className="mb-3 px-3 py-2 rounded-pill border"
-      style={{ transition: "all .2s", boxShadow: "0 2px 6px rgba(0,0,0,.05)" }}
-    />
-  );
-
-  const ColorPills = () => (
-    <div className="d-flex flex-wrap gap-2 mb-3">
-      {PRESET_COLORS.map((c) => (
-        <Button
-          key={c.value}
-          size="sm"
-          className="rounded-pill border-0 px-3 py-2"
-          style={{
-            background: c.value,
-            transform: form.theme_color === c.value ? "scale(1.1)" : "none",
-            boxShadow:
-              form.theme_color === c.value ? `0 0 0 3px ${c.value}44` : "none",
-          }}
-          onClick={() => handleChange("theme_color", c.value)}
-          disabled={disabled}
-        >
-          {c.name}
-        </Button>
-      ))}
-      <Form.Control
-        type="color"
-        value={form.theme_color}
-        onChange={(e) => handleChange("theme_color", e.target.value)}
-        disabled={disabled}
-        className="rounded-pill"
-        style={{ width: 42, height: 42, padding: 2 }}
-      />
-    </div>
-  );
-
-  const FontSelector = () => (
-    <Form.Select
-      value={form.invoice_font}
-      onChange={(e) => handleChange("invoice_font", e.target.value)}
-      disabled={disabled}
-      className="mb-3 rounded-pill"
-      style={{ fontFamily: form.invoice_font }}
-    >
-      {FONT_OPTIONS.map((f) => (
-        <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>
-          {f.label}
-        </option>
-      ))}
-    </Form.Select>
-  );
-
   return (
     <div className="container py-4" style={{ maxWidth: 680, marginBottom: 80 }}>
+      <Header />
+      <Navbar />
       <h1 className="fw-bold mb-4">Shop Settings</h1>
 
       {isPremium && premiumExpiresAt && (
@@ -293,94 +219,168 @@ export default function SettingsPage() {
       )}
 
       {/* Shop Info */}
-      <Section title="Shop Information">
-        <PremiumInput
-          placeholder="Shop Name"
-          value={form.shop_name}
-          onChange={(e) => handleChange("shop_name", e.target.value)}
-          disabled={disabled}
-        />
-        <Form.Control
-          as="textarea"
-          rows={2}
-          placeholder="Address"
-          value={form.address}
-          onChange={(e) => handleChange("address", e.target.value)}
-          disabled={disabled}
-          className="mb-3 px-3 py-2 rounded"
-          style={{ resize: "none" }}
-        />
-        <PremiumInput
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) => handleChange("phone", e.target.value)}
-          disabled={disabled}
-        />
-        <PremiumInput
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          disabled={disabled}
-          type="email"
-        />
-      </Section>
+      <Card className="shadow-sm border-0 mb-4">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Shop Information</h5>
+
+          <Form.Control
+            placeholder="Shop Name"
+            value={form.shop_name}
+            onChange={(e) => handleChange("shop_name", e.target.value)}
+            disabled={disabled}
+            className="mb-3 px-3 py-2 rounded-pill border"
+          />
+
+          <Form.Control
+            as="textarea"
+            rows={2}
+            placeholder="Address"
+            value={form.address}
+            onChange={(e) => handleChange("address", e.target.value)}
+            disabled={disabled}
+            className="mb-3 px-3 py-2 rounded"
+            style={{ resize: "none" }}
+          />
+
+          <Form.Control
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => handleChange("phone", e.target.value)}
+            disabled={disabled}
+            className="mb-3 px-3 py-2 rounded-pill border"
+          />
+
+          <Form.Control
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            disabled={disabled}
+            className="mb-3 px-3 py-2 rounded-pill border"
+          />
+        </Card.Body>
+      </Card>
 
       {/* Logo */}
-      <Section title="Logo">
-        {form.logo_url && (
-          <div className="d-flex align-items-center gap-3 mb-3">
-            <img
-              src={`${form.logo_url}?t=${Date.now()}`}
-              className="rounded-3 border"
-              style={{ width: 80, height: 80, objectFit: "contain" }}
-              alt="logo"
-            />
-            <Button
-              size="sm"
-              variant="outline-danger"
-              onClick={removeLogo}
-              disabled={disabled}
-            >
-              Remove
-            </Button>
-          </div>
-        )}
-        <Form.Control
-          type="file"
-          accept="image/*"
-          onChange={uploadLogo}
-          disabled={disabled}
-          className="rounded-pill"
-        />
-      </Section>
+      <Card className="shadow-sm border-0 mb-4">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Logo</h5>
+
+          {form.logo_url && (
+            <div className="d-flex align-items-center gap-3 mb-3">
+              <img
+                src={form.logo_url}
+                className="rounded-3 border"
+                style={{ width: 80, height: 80, objectFit: "contain" }}
+                alt="logo"
+              />
+              <Button
+                size="sm"
+                variant="outline-danger"
+                onClick={removeLogo}
+                disabled={disabled}
+              >
+                Remove
+              </Button>
+            </div>
+          )}
+
+          <Form.Control
+            type="file"
+            accept="image/*"
+            onChange={uploadLogo}
+            disabled={disabled}
+            className="rounded-pill"
+          />
+        </Card.Body>
+      </Card>
 
       {/* Theme Colour */}
-      <Section title="Theme Colour">
-        <ColorPills />
-      </Section>
+      <Card className="shadow-sm border-0 mb-4">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Theme Colour</h5>
+
+          <div className="d-flex flex-wrap gap-2 mb-3">
+            {PRESET_COLORS.map((c) => (
+              <Button
+                key={c.value}
+                size="sm"
+                className="rounded-pill border-0 px-3 py-2"
+                style={{
+                  background: c.value,
+                  transform:
+                    form.theme_color === c.value ? "scale(1.1)" : "none",
+                  boxShadow:
+                    form.theme_color === c.value
+                      ? `0 0 0 3px ${c.value}44`
+                      : "none",
+                }}
+                onClick={() => handleChange("theme_color", c.value)}
+                disabled={disabled}
+              >
+                {c.name}
+              </Button>
+            ))}
+
+            <Form.Control
+              type="color"
+              value={form.theme_color}
+              onChange={(e) => handleChange("theme_color", e.target.value)}
+              disabled={disabled}
+              className="rounded-pill"
+              style={{ width: 42, height: 42, padding: 2 }}
+            />
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Font */}
-      <Section title="Invoice Font">
-        <FontSelector />
-      </Section>
+      <Card className="shadow-sm border-0 mb-4">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Invoice Font</h5>
+
+          <Form.Select
+            value={form.invoice_font}
+            onChange={(e) => handleChange("invoice_font", e.target.value)}
+            disabled={disabled}
+            className="mb-3 rounded-pill"
+            style={{ fontFamily: form.invoice_font }}
+          >
+            {FONT_OPTIONS.map((f) => (
+              <option
+                key={f.value}
+                value={f.value}
+                style={{ fontFamily: f.value }}
+              >
+                {f.label}
+              </option>
+            ))}
+          </Form.Select>
+        </Card.Body>
+      </Card>
 
       {/* Footer */}
-      <Section title="Invoice Footer">
-        <Form.Control
-          as="textarea"
-          rows={2}
-          maxLength={120}
-          placeholder="Footer text (120 chars)"
-          value={form.footer_text}
-          onChange={(e) => handleChange("footer_text", e.target.value)}
-          disabled={disabled}
-          className="px-3 py-2 rounded"
-          style={{ resize: "none" }}
-        />
-        <div className="text-end">
-          <small className="text-muted">{form.footer_text.length}/120</small>
-        </div>
-      </Section>
+      <Card className="shadow-sm border-0 mb-4">
+        <Card.Body>
+          <h5 className="fw-semibold mb-3">Invoice Footer</h5>
+
+          <Form.Control
+            as="textarea"
+            rows={2}
+            maxLength={120}
+            placeholder="Footer text (120 chars)"
+            value={form.footer_text}
+            onChange={(e) => handleChange("footer_text", e.target.value)}
+            disabled={disabled}
+            className="px-3 py-2 rounded"
+            style={{ resize: "none" }}
+          />
+
+          <div className="text-end">
+            <small className="text-muted">{form.footer_text.length}/120</small>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Actions */}
       <div className="d-flex gap-2">
@@ -401,17 +401,12 @@ export default function SettingsPage() {
             logo: form.logo_url,
             color: form.theme_color,
             font: form.invoice_font,
-            footer: form.footer_text,
+            footer: form.footer_text || "Thank You!",
+            customer: sampleInvoice.customer,
           }}
           invoice={sampleInvoice}
         />
       </div>
-
-      {isAdmin && (
-        <Link to="/admin" className="btn btn-danger btn-sm rounded-pill mt-4">
-          Admin Panel
-        </Link>
-      )}
     </div>
   );
 }

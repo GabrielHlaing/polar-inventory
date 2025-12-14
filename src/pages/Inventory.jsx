@@ -3,13 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Modal, Button, Form, Placeholder } from "react-bootstrap";
 import { useItems } from "../contexts/ItemsContext";
 import { useCart } from "../contexts/CartContext";
-import { supabase } from "../supabaseClient";
 import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
+import { useProfile } from "../contexts/ProfileContext";
+import Header from "../components/Header";
+import useUpToHome from "../hooks/useUpToHome";
 
 export default function Inventory() {
+  useUpToHome();
+
   const navigate = useNavigate();
   const { items, loading, addItem } = useItems();
   const { addToCart, totalCount } = useCart();
+  const { profile } = useProfile();
 
   /* ---------- search ---------- */
   const [search, setSearch] = useState("");
@@ -48,7 +54,6 @@ export default function Inventory() {
   const saveItem = async () => {
     if (processing) return;
     setProcessing(true);
-    const { data: user } = await supabase.auth.getUser();
     const { error } = await addItem({
       name,
       qty: 0,
@@ -56,7 +61,7 @@ export default function Inventory() {
       sale_price: Number(salePrice) || null,
       mfg_date: mfgDate || null,
       exp_date: expDate || null,
-      user_id: user.user.id,
+      user_id: profile.id,
     });
 
     setProcessing(false);
@@ -89,10 +94,12 @@ export default function Inventory() {
         marginBottom: 80,
       }}
     >
+      <Header />
+      <Navbar />
       {/* header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h3 className="mb-0 fw-bold">Inventory</h3>
+          <h1 className="fw-bold mb-0">Inventory</h1>
           <small className="text-muted">Manage your products</small>
         </div>
 

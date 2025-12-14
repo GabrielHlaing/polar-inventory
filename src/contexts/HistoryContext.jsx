@@ -1,11 +1,14 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { idbGet, idbPut, idbDelete, STORE_NAMES } from "../idb";
+import { useProfile } from "./ProfileContext";
 
 const HistoryContext = createContext();
 
 export function HistoryProvider({ children }) {
   const [historyCache, setHistoryCache] = useState({});
+
+  const { profile, loading: profileLoading } = useProfile();
 
   // --------------------------------------------
   // Fetch invoices (ONLINE first, but uses IDB when offline)
@@ -173,6 +176,11 @@ export function HistoryProvider({ children }) {
   // Your existing editInvoice (unchanged)
   // --------------------------------------------
   async function editInvoice(id, updatedData) {
+    // ✅ normalize once
+    const safeHistory = Array.isArray(updatedData.history)
+      ? updatedData.history
+      : [];
+
     const { data: invoiceUpdate, error: invoiceError } = await supabase
       .from("invoices")
       .update({
@@ -198,7 +206,8 @@ export function HistoryProvider({ children }) {
       oldHistoryRes.data.map((h) => [h.id, h])
     );
 
-    for (const newItem of updatedData.history) {
+    // ✅ use safeHistory everywhere
+    for (const newItem of safeHistory) {
       const oldItem = oldHistoryMap[newItem.id];
 
       const oldQty = oldItem ? Number(oldItem.qty_change) : 0;
@@ -240,7 +249,7 @@ export function HistoryProvider({ children }) {
       }
     }
 
-    for (const item of updatedData.history) {
+    for (const item of safeHistory) {
       const { error: histErr } = await supabase
         .from("history")
         .update({
@@ -254,9 +263,15 @@ export function HistoryProvider({ children }) {
       if (histErr) return { error: histErr };
     }
 
+    const existingInvoice =
+      historyCache[invoiceUpdate.created_at.slice(0, 7)]?.invoices.find(
+        (i) => i.id === id
+      ) || {};
+
     const finalInvoice = {
-      ...invoiceUpdate,
-      history: [...updatedData.history],
+      ...existingInvoice, // ⬅️ KEEP existing fields (customer, type, etc.)
+      ...invoiceUpdate, // ⬅️ overwrite edited invoice fields
+      history: safeHistory, // ⬅️ reattach history explicitly
     };
 
     updateInvoiceInCache(finalInvoice);
@@ -268,30 +283,30 @@ export function HistoryProvider({ children }) {
   // Auto-refresh last month's invoices on mount + when coming online
   // --------------------------------------------
   useEffect(() => {
+    if (profileLoading) return;
+
+    if (!profile) {
+      setHistoryCache({});
+      return;
+    }
+
     const fetchLastMonth = () => {
       const now = new Date();
       const year = now.getFullYear();
-      const month = now.getMonth(); // 0-based month
+      const month = now.getMonth();
       const lastMonth = month === 0 ? 12 : month;
       const lastMonthYear = month === 0 ? year - 1 : year;
 
-      fetchInvoicesByMonth(lastMonthYear, lastMonth).catch((err) => {
-        console.error("Error fetching last month's invoices:", err);
-      });
+      fetchInvoicesByMonth(lastMonthYear, lastMonth).catch(console.error);
     };
 
-    // 1️⃣ Fetch immediately on mount if online
     if (navigator.onLine) {
       fetchLastMonth();
     }
 
-    // 2️⃣ Listen for coming online
     window.addEventListener("online", fetchLastMonth);
-
-    return () => {
-      window.removeEventListener("online", fetchLastMonth);
-    };
-  }, []); // empty dependency ensures this runs once on mount
+    return () => window.removeEventListener("online", fetchLastMonth);
+  }, [profileLoading, profile?.id]);
 
   return (
     <HistoryContext.Provider

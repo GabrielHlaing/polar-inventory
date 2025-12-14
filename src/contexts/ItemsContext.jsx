@@ -11,10 +11,16 @@ export function ItemsProvider({ children }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { isPremium } = useProfile();
+  const { profile, loading: profileLoading, isPremium } = useProfile();
 
   const FREE_LIMIT = 20;
   const PREMIUM_LIMIT = 1500;
+
+  /* ----------  alphabetical helper  ---------- */
+  const sortAlpha = (arr) =>
+    [...arr].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
 
   // -------------------------
   // LOAD ITEMS
@@ -23,7 +29,7 @@ export function ItemsProvider({ children }) {
     setLoading(true);
 
     const cached = await idbGetAll(STORE_NAMES.INVENTORY);
-    setItems(cached);
+    setItems(sortAlpha(cached));
 
     if (navigator.onLine) {
       const { data, error } = await supabase
@@ -44,8 +50,16 @@ export function ItemsProvider({ children }) {
   }
 
   useEffect(() => {
+    if (profileLoading) return;
+
+    if (!profile) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
     loadItems();
-  }, []);
+  }, [profileLoading, profile?.id]);
 
   // -------------------------
   // ADD ITEM
@@ -62,9 +76,11 @@ export function ItemsProvider({ children }) {
       created_at: new Date().toISOString(),
     };
 
+    // 1. Save to IndexedDB (offline-first)
     await idbPut(STORE_NAMES.INVENTORY, newItem);
-    setItems((p) => [...p, newItem]);
+    setItems((p) => sortAlpha([...p, newItem]));
 
+    // 2. If offline → queue and return immediately
     if (!navigator.onLine) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
         queueId: crypto.randomUUID(),
@@ -75,6 +91,7 @@ export function ItemsProvider({ children }) {
       return { data: newItem };
     }
 
+    // 3. Online → try Supabase, queue on error
     const { error } = await supabase.from("inventory").insert(newItem);
     if (error) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
@@ -84,7 +101,7 @@ export function ItemsProvider({ children }) {
         payload: newItem,
       });
     } else {
-      await loadItems();
+      await loadItems(); // refresh from cloud
     }
 
     return { data: newItem };
@@ -97,7 +114,7 @@ export function ItemsProvider({ children }) {
     const updated = { id, ...payload };
 
     await idbPut(STORE_NAMES.INVENTORY, updated);
-    setItems((p) => p.map((i) => (i.id === id ? updated : i)));
+    setItems((p) => sortAlpha(p.map((i) => (i.id === id ? updated : i))));
 
     if (!navigator.onLine) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {

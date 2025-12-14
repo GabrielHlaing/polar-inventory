@@ -11,24 +11,30 @@ export default function Receipt({ shop, invoice }) {
   const calcTotal = (item) => item.qty_change * getPrice(item);
   const grandTotal = items.reduce((s, i) => s + calcTotal(i), 0);
 
+  const tint = (hex, alpha) => hex + alpha;
+
   return (
     <Card
       className="border-0 shadow-sm mx-auto"
       style={{
         maxWidth: 380,
-        fontFamily: shop.font,
         background: "linear-gradient(135deg, #ffffff 0%, #f9fbfd 100%)",
         borderRadius: 16,
         overflow: "hidden",
       }}
     >
-      <Card.Body className="p-4">
-        {/* header */}
-        <div className="d-flex align-items-center gap-3 mb-3">
+      {/* 🔹 HEADER STRIP */}
+      <div
+        style={{
+          background: tint(shop.color, "12"),
+          padding: "12px 16px",
+        }}
+      >
+        <div className="d-flex align-items-center gap-3">
           {shop.logo && (
             <div
-              className="rounded-3 border bg-white d-flex align-items-center justify-content-center"
-              style={{ width: 56, height: 56 }}
+              className="rounded-3 bg-white d-flex align-items-center justify-content-center"
+              style={{ width: 52, height: 52 }}
             >
               <img
                 src={shop.logo}
@@ -39,7 +45,12 @@ export default function Receipt({ shop, invoice }) {
             </div>
           )}
           <div>
-            <div className="fw-bold fs-5">{shop.name}</div>
+            <div
+              className="fw-bold fs-5"
+              style={{ color: shop.color, fontFamily: shop.font }}
+            >
+              {shop.name}
+            </div>
             <small className="text-muted">{shop.address}</small>
             {shop.phone && (
               <div className="small text-muted">
@@ -53,7 +64,9 @@ export default function Receipt({ shop, invoice }) {
             )}
           </div>
         </div>
+      </div>
 
+      <Card.Body className="p-4">
         {/* invoice meta */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
@@ -62,14 +75,7 @@ export default function Receipt({ shop, invoice }) {
               {new Date(invoice.created_at).toLocaleDateString()}
             </small>
           </div>
-          <Badge
-            pill
-            style={{
-              backgroundColor: shop.color + "22",
-              color: shop.color,
-              border: `1px solid ${shop.color}44`,
-            }}
-          >
+          <Badge pill bg={invoice.type === "purchase" ? "primary" : "success"}>
             {invoice.type}
           </Badge>
         </div>
@@ -78,10 +84,15 @@ export default function Receipt({ shop, invoice }) {
         {customer && (
           <Card
             className="mb-3 border-0"
-            style={{ background: shop.color + "11" }}
+            style={{ background: tint(shop.color, "14") }}
           >
             <Card.Body className="p-2">
-              <div className="fw-semibold small mb-1">Bill to</div>
+              <div
+                className="fw-semibold small mb-1"
+                style={{ color: shop.color }}
+              >
+                Bill to
+              </div>
               <div className="small">
                 {customer.name && <div>{customer.name}</div>}
                 {customer.phone && <div>{customer.phone}</div>}
@@ -96,8 +107,12 @@ export default function Receipt({ shop, invoice }) {
         {/* items */}
         <div className="mb-3">
           <div
-            className="d-flex fw-semibold small text-muted border-bottom pb-1"
-            style={{ borderColor: shop.color + "33" }}
+            className="d-flex fw-semibold small mb-1"
+            style={{
+              background: tint(shop.color, "18"),
+              padding: "6px 4px",
+              borderRadius: 6,
+            }}
           >
             <span className="flex-fill">Item</span>
             <span className="text-center" style={{ width: 48 }}>
@@ -115,7 +130,7 @@ export default function Receipt({ shop, invoice }) {
             <div
               key={item.id}
               className="d-flex small py-2 border-bottom"
-              style={{ borderColor: shop.color + "22" }}
+              style={{ borderColor: tint(shop.color, "22") }}
             >
               <span className="flex-fill">{item.metadata?.name}</span>
               <span className="text-center" style={{ width: 48 }}>
@@ -132,7 +147,12 @@ export default function Receipt({ shop, invoice }) {
         </div>
 
         {/* total */}
-        <div className="d-flex justify-content-between align-items-center fw-bold mb-3">
+        <div
+          className="d-flex justify-content-between align-items-center fw-bold mb-3 pt-2"
+          style={{
+            borderTop: `2px solid ${tint(shop.color, "33")}`,
+          }}
+        >
           <span>Total</span>
           <span style={{ color: shop.color }}>
             {grandTotal.toLocaleString()} Ks
@@ -142,8 +162,11 @@ export default function Receipt({ shop, invoice }) {
         {/* footer */}
         {shop.footer && (
           <div
-            className="text-center text-muted small border-top pt-2"
-            style={{ borderColor: shop.color + "33" }}
+            className="text-center small pt-2"
+            style={{
+              color: shop.color,
+              borderTop: `1px dashed ${tint(shop.color, "33")}`,
+            }}
           >
             {shop.footer}
           </div>

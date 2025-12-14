@@ -27,21 +27,17 @@ import Contact from "./static pages/Contact";
 import Protect from "./routes/Protect";
 import { ToastContainer } from "react-toastify";
 import { SyncProvider } from "./contexts/SyncContext";
-import Header from "./components/Header";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SyncProvider>
-        <DashboardProvider>
-          <ProfileProvider>
+    <ProfileProvider>
+      <AuthProvider>
+        <SyncProvider>
+          <DashboardProvider>
             <ItemsProvider>
               <CartProvider>
                 <HistoryProvider>
                   <>
-                    <Header />
-                    <Navbar />
-
                     <Routes>
                       <Route
                         path="/"
@@ -144,24 +140,39 @@ export default function App() {
                       />
                     </Routes>
 
-                    {/* Toast container */}
                     <ToastContainer
-                      position="bottom-center"
+                      position="top-right" // clears bottom-center overlap
                       autoClose={3000}
                       hideProgressBar={false}
-                      newestOnTop={false}
+                      newestOnTop
                       closeOnClick
                       pauseOnHover
                       draggable
-                      theme="dark"
+                      theme="light" // light card
+                      style={{
+                        marginBottom: "70px", // same as your navbar height
+                        marginLeft: "12px",
+                      }}
+                      toastStyle={{
+                        backgroundColor: "#ffffff",
+                        color: "#1e2a4a",
+                        border: "1px solid #004c97",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,.15)",
+                      }}
+                      progressStyle={{
+                        background: "#004c97", // blue progress bar
+                        height: "3px",
+                      }}
                     />
                   </>
                 </HistoryProvider>
               </CartProvider>
             </ItemsProvider>
-          </ProfileProvider>
-        </DashboardProvider>
-      </SyncProvider>
-    </AuthProvider>
+          </DashboardProvider>
+        </SyncProvider>
+      </AuthProvider>
+    </ProfileProvider>
   );
 }

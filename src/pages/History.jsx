@@ -5,6 +5,7 @@ import InvoiceCard from "../components/InvoiceCard";
 import { useItems } from "../contexts/ItemsContext";
 import { Form, Button, Card, Placeholder, Badge } from "react-bootstrap";
 import { toast } from "react-toastify";
+import FabBack from "../components/FabBack";
 
 export default function History() {
   const { fetchInvoicesByMonth, historyCache, editInvoice, deleteInvoice } =
@@ -37,8 +38,6 @@ export default function History() {
   /* ---------- handlers with toast & guard ---------- */
   const handleDelete = async (id) => {
     if (processing) return;
-    const confirmed = window.confirm("Delete this invoice permanently?");
-    if (!confirmed) return;
     setProcessing(true);
     await deleteInvoice(id);
     toast.success("Invoice deleted");
@@ -165,6 +164,8 @@ export default function History() {
 
   return (
     <div className="container py-3" style={{ marginBottom: 80 }}>
+      <FabBack toHome />
+      <h1 className="fw-bold mb-4">History</h1>
       <MonthSelector />
       <FilterPills />
       <SummaryCards />

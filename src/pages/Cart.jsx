@@ -20,6 +20,7 @@ import { useHistoryData } from "../contexts/HistoryContext";
 import { useSync } from "../contexts/SyncContext";
 import { idbPut, STORE_NAMES } from "../idb";
 import { toast } from "react-toastify";
+import FabBack from "../components/FabBack";
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -50,9 +51,15 @@ export default function CartPage() {
 
   const changeQty = (id, delta) =>
     setCartState((p) =>
-      p.map((i) =>
-        i.id === id ? { ...i, qty: Math.max(1, Number(i.qty) + delta) } : i
-      )
+      p.map((i) => {
+        if (i.id !== id) return i;
+
+        const base = i.qty === "" ? 0 : Number(i.qty);
+        return {
+          ...i,
+          qty: Math.max(1, base + delta),
+        };
+      })
     );
 
   const updateCustomer = (f, v) => setCustomer((p) => ({ ...p, [f]: v }));
@@ -89,7 +96,7 @@ export default function CartPage() {
       id: crypto.randomUUID(),
       user_id: user.id,
       inventory_id: c.id,
-      qty_change: Number(c.qty),
+      qty_change: Math.max(1, Number(c.qty || 1)),
       type: type === "purchase" ? "purchase" : "sale",
       purchase_price: Number(c.purchase_price || 0) || null,
       sale_price: Number(c.sale_price || 0) || null,
@@ -144,7 +151,7 @@ export default function CartPage() {
     updateInvoiceInCache({ ...invoicePayload, history: historyRows });
     clearCart();
     toast.success("Checkout Successful!");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   /* ---------- empty cart ---------- */
@@ -174,6 +181,7 @@ export default function CartPage() {
 
   return (
     <div className="container py-4" style={{ marginBottom: 80 }}>
+      <FabBack />
       <Row className="align-items-center mb-3">
         <Col>
           <h3 className="fw-bold mb-0">
@@ -303,11 +311,24 @@ export default function CartPage() {
                   -
                 </Button>
                 <Form.Control
+                  size="sm"
                   type="number"
-                  min={1}
-                  value={c.qty}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={c.qty ?? ""}
                   onChange={(e) =>
-                    handleChange(c.id, "qty", Number(e.target.value) || 1)
+                    handleChange(
+                      c.id,
+                      "qty",
+                      e.target.value === "" ? "" : e.target.value
+                    )
+                  }
+                  onBlur={(e) =>
+                    handleChange(
+                      c.id,
+                      "qty",
+                      Math.max(1, Number(e.target.value || 1))
+                    )
                   }
                   style={{ width: 70 }}
                 />
@@ -416,14 +437,28 @@ export default function CartPage() {
                       -
                     </Button>
                     <Form.Control
+                      size="sm"
                       type="number"
-                      min={1}
-                      value={c.qty}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={c.qty ?? ""}
                       onChange={(e) =>
-                        handleChange(c.id, "qty", Number(e.target.value) || 1)
+                        handleChange(
+                          c.id,
+                          "qty",
+                          e.target.value === "" ? "" : e.target.value
+                        )
+                      }
+                      onBlur={(e) =>
+                        handleChange(
+                          c.id,
+                          "qty",
+                          Math.max(1, Number(e.target.value || 1))
+                        )
                       }
                       style={{ width: 70 }}
                     />
+
                     <Button
                       size="sm"
                       variant="outline-secondary"

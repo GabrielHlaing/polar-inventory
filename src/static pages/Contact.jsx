@@ -1,6 +1,9 @@
+import FabBack from "../components/FabBack";
+
 export default function Contact() {
   return (
     <div className="container py-4">
+      <FabBack />
       <h1 className="mb-4">Contact Us</h1>
 
       <p>If you need help, feel free to reach out:</p>

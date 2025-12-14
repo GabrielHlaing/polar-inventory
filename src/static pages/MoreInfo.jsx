@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Header from "../components/Header";
 
 export default function MoreInfo() {
   return (
-    <div className="container py-4">
-      <h1 className="mb-4">More Information</h1>
+    <div className="container py-4" style={{ marginBottom: 80 }}>
+      <Header />
+      <Navbar />
+      <h1 className="fw-bold mb-4">More Information</h1>
 
       <div className="row">
         <div className="col-md-6 mb-3">

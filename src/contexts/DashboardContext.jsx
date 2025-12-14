@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { subDays, format } from "date-fns";
+import { useProfile } from "./ProfileContext";
 
 const DashboardContext = createContext();
 
@@ -20,6 +21,8 @@ export function DashboardProvider({ children }) {
   const [series, setSeries] = useState([]); // [{date, sales, purchases}]
   const [topItems, setTopItems] = useState([]);
   const [lastFetched, setLastFetched] = useState(null);
+
+  const { profile, loading: profileLoading } = useProfile();
 
   async function fetchKpisAndSeries() {
     setLoading(true);
@@ -134,11 +137,24 @@ export function DashboardProvider({ children }) {
   }
 
   useEffect(() => {
-    const run = async () => {
-      await fetchKpisAndSeries();
-    };
-    run();
-  }, []);
+    if (profileLoading) return;
+
+    if (!profile) {
+      setKpis({
+        todaySales: 0,
+        todayPurchases: 0,
+        totalStock: 0,
+        stockValuePurchase: 0,
+        lowStockCount: 0,
+      });
+      setSeries([]);
+      setTopItems([]);
+      setLoading(false);
+      return;
+    }
+
+    fetchKpisAndSeries();
+  }, [profileLoading, profile?.id]);
 
   const refresh = async () => {
     await fetchKpisAndSeries();

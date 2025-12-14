@@ -36,11 +36,11 @@ export default function Header() {
               }}
             >
               <img
-                src="/Polar-logo.png"
+                src="/polar-logo.png"
                 alt="Polar Inventory"
                 style={{
-                  height: 22,
-                  width: 22,
+                  height: 36,
+                  width: 36,
                   objectFit: "contain",
                   filter: "brightness(1.2)",
                 }}

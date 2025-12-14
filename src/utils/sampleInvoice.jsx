@@ -3,6 +3,12 @@ export const sampleInvoice = {
   invoice_number: "SAMPLE-001",
   created_at: new Date().toISOString(),
   type: "sale",
+  customer: {
+    name: "Customer",
+    phone: "09xxxxxxxxx",
+    address: "The City",
+  },
+
   history: [
     {
       id: 1,

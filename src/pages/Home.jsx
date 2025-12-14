@@ -13,7 +13,15 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Card, Badge, Button, Row, Col } from "react-bootstrap";
-import { BsCart4, BsBoxSeam, BsClockHistory, BsPlusLg } from "react-icons/bs";
+import {
+  BsCart4,
+  BsBoxSeam,
+  BsClockHistory,
+  BsPlusLg,
+  BsPerson,
+} from "react-icons/bs";
+import Navbar from "../components/Navbar";
+import Header from "../components/Header";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -41,26 +49,6 @@ export default function Home() {
         {children}
       </Card.Body>
     </Card>
-  );
-
-  const PremiumButton = ({ children, onClick, variant = "warning" }) => (
-    <Button
-      variant={variant}
-      onClick={onClick}
-      className="rounded-pill px-3 py-2 fw-semibold shadow-sm"
-      style={
-        isPremium
-          ? {
-              background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
-              border: "none",
-              boxShadow: "0 0 12px rgba(253, 203, 110, .6)",
-              color: "#744210",
-            }
-          : {}
-      }
-    >
-      {children}
-    </Button>
   );
 
   const NavigatorCard = () => (
@@ -92,9 +80,9 @@ export default function Home() {
             <Button
               variant={isPremium ? "outline-dark" : "outline-secondary"}
               className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-2"
-              onClick={() => navigate("/cart")}
+              onClick={() => navigate("/profile")}
             >
-              <BsCart4 /> New Invoice
+              <BsPerson /> Profile
             </Button>
           </Col>
           <Col xs={6}>
@@ -260,6 +248,9 @@ export default function Home() {
   /* ---------- render ---------- */
   return (
     <div className="container py-4" style={{ maxWidth: 680, marginBottom: 80 }}>
+      <Header />
+      <Navbar />
+      <h1 className="fw-bold mb-4">Dashboard</h1>
       <NavigatorCard />
       <KPICards />
       <ChartCard />

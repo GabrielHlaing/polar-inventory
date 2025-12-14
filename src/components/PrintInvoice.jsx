@@ -35,9 +35,9 @@ export default function PrintInvoice() {
     phone: settings.phone || "",
     email: settings.email || "",
     logo: settings.logo_url || "",
-    color: settings.theme_color || "#72b3f7",
+    color: settings.theme_color || "#2b6cb0",
     font: settings.invoice_font || "Inter, sans-serif",
-    footer: settings.footer_text || "Thank you for your shopping!",
+    footer: settings.footer_text || "Thank you for shopping with us!",
   };
 
   const [logoOk, setLogoOk] = useState(true); // logo ready flag
@@ -52,7 +52,7 @@ export default function PrintInvoice() {
       scale: 3,
       backgroundColor: "#ffffff",
       width: 380, // 58 mm thermal paper width (mobile first)
-      useCORS: true, // 🔴 REQUIRED
+      useCORS: true,
       allowTaint: false,
     });
     const png = canvas.toDataURL("image/png");
@@ -82,6 +82,8 @@ export default function PrintInvoice() {
   const calcTotal = (item) => item.qty_change * getPrice(item);
   const grandTotal = items.reduce((s, i) => s + calcTotal(i), 0);
 
+  const tint = (hex, alpha) => hex + alpha;
+
   /* ---------- receipt JSX ---------- */
   const Receipt = () => (
     <Card
@@ -94,16 +96,18 @@ export default function PrintInvoice() {
         overflow: "hidden",
       }}
     >
-      <Card.Body className="p-4">
-        {/* header */}
-        <div className="d-flex align-items-center gap-3 mb-3">
+      {/* 🔹 HEADER STRIP */}
+      <div
+        style={{
+          background: tint(shop.color, "12"),
+          padding: "12px 16px",
+        }}
+      >
+        <div className="d-flex align-items-center gap-3">
           {shop.logo && (
             <div
-              className="rounded-3 border bg-white d-flex align-items-center justify-content-center"
-              style={{
-                width: 56,
-                height: 56,
-              }}
+              className="rounded-3 bg-white d-flex align-items-center justify-content-center"
+              style={{ width: 52, height: 52 }}
             >
               <img
                 src={shop.logo}
@@ -123,19 +127,11 @@ export default function PrintInvoice() {
               {shop.name}
             </div>
             <small className="text-muted">{shop.address}</small>
-            {shop.phone && (
-              <div className="small text-muted">
-                <FaPhone /> {shop.phone}
-              </div>
-            )}
-            {shop.email && (
-              <div className="small text-muted">
-                <FaEnvelope /> {shop.email}
-              </div>
-            )}
           </div>
         </div>
+      </div>
 
+      <Card.Body className="p-4">
         {/* invoice meta */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
@@ -144,14 +140,7 @@ export default function PrintInvoice() {
               {new Date(invoice.created_at).toLocaleDateString()}
             </small>
           </div>
-          <Badge
-            pill
-            style={{
-              backgroundColor: shop.color + "22",
-              color: "white",
-              border: `1px solid ${shop.color}44`,
-            }}
-          >
+          <Badge pill bg={invoice.type === "purchase" ? "primary" : "success"}>
             {invoice.type}
           </Badge>
         </div>
@@ -160,10 +149,15 @@ export default function PrintInvoice() {
         {customer && (
           <Card
             className="mb-3 border-0"
-            style={{ background: shop.color + "11" }}
+            style={{ background: tint(shop.color, "14") }}
           >
             <Card.Body className="p-2">
-              <div className="fw-semibold small mb-1">Bill to</div>
+              <div
+                className="fw-semibold small mb-1"
+                style={{ color: shop.color }}
+              >
+                Bill to
+              </div>
               <div className="small">
                 {customer.name && <div>{customer.name}</div>}
                 {customer.phone && <div>{customer.phone}</div>}
@@ -178,8 +172,12 @@ export default function PrintInvoice() {
         {/* items */}
         <div className="mb-3">
           <div
-            className="d-flex fw-semibold small text-muted border-bottom pb-1"
-            style={{ borderColor: shop.color + "33" }}
+            className="d-flex fw-semibold small pb-1 mb-1"
+            style={{
+              background: tint(shop.color, "18"),
+              padding: "6px 4px",
+              borderRadius: 6,
+            }}
           >
             <span className="flex-fill">Item</span>
             <span className="text-center" style={{ width: 48 }}>
@@ -197,7 +195,7 @@ export default function PrintInvoice() {
             <div
               key={item.id}
               className="d-flex small py-2 border-bottom"
-              style={{ borderColor: shop.color + "22" }}
+              style={{ borderColor: tint(shop.color, "22") }}
             >
               <span className="flex-fill">{item.metadata?.name}</span>
               <span className="text-center" style={{ width: 48 }}>
@@ -214,7 +212,10 @@ export default function PrintInvoice() {
         </div>
 
         {/* total */}
-        <div className="d-flex justify-content-between align-items-center fw-bold mb-3">
+        <div
+          className="d-flex justify-content-between align-items-center fw-bold mb-3 pt-2"
+          style={{ borderTop: `2px solid ${tint(shop.color, "33")}` }}
+        >
           <span>Total</span>
           <span style={{ color: shop.color }}>
             {grandTotal.toLocaleString()} Ks
@@ -224,8 +225,11 @@ export default function PrintInvoice() {
         {/* footer */}
         {shop.footer && (
           <div
-            className="text-center text-muted small border-top pt-2"
-            style={{ borderColor: shop.color + "33" }}
+            className="text-center small pt-2"
+            style={{
+              color: shop.color,
+              borderTop: `1px dashed ${tint(shop.color, "33")}`,
+            }}
           >
             {shop.footer}
           </div>

@@ -4,15 +4,24 @@ import { useProfile } from "../contexts/ProfileContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, Badge, Button, Form, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
+import Header from "../components/Header";
+import useUpToHome from "../hooks/useUpToHome";
 
 export default function Profile() {
-  const { profile, premiumExpiresAt } = useProfile();
+  useUpToHome();
+
+  const { profile, premiumExpiresAt, isAdmin } = useProfile();
   const { logout } = useAuth();
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNew, setConfirmNew] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [showOldPwd, setShowOldPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const isPremium = profile?.tier === "premium";
 
@@ -88,6 +97,8 @@ export default function Profile() {
 
   return (
     <div className="container py-4" style={{ maxWidth: 520, marginBottom: 80 }}>
+      <Header />
+      <Navbar />
       <h1 className="fw-bold mb-4">Profile</h1>
 
       {/* ---- info card ---- */}
@@ -119,33 +130,65 @@ export default function Profile() {
           <h5 className="fw-semibold mb-3">Change Password</h5>
 
           <Form.Group className="mb-3">
-            <Form.Control
-              type="password"
-              placeholder="Old password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              disabled={loading}
-            />
+            <div className="input-group">
+              <Form.Control
+                type={showOldPwd ? "text" : "password"}
+                placeholder="Old password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                disabled={loading}
+              />
+              <Button
+                variant="light"
+                className="border"
+                onClick={() => setShowOldPwd((v) => !v)}
+                disabled={loading}
+              >
+                <i className={`bi ${showOldPwd ? "bi-eye-slash" : "bi-eye"}`} />
+              </Button>
+            </div>
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Control
-              type="password"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              disabled={loading}
-            />
+            <div className="input-group">
+              <Form.Control
+                type={showNewPwd ? "text" : "password"}
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading}
+              />
+              <Button
+                variant="light"
+                className="border"
+                onClick={() => setShowNewPwd((v) => !v)}
+                disabled={loading}
+              >
+                <i className={`bi ${showNewPwd ? "bi-eye-slash" : "bi-eye"}`} />
+              </Button>
+            </div>
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Control
-              type="password"
-              placeholder="Confirm new password"
-              value={confirmNew}
-              onChange={(e) => setConfirmNew(e.target.value)}
-              disabled={loading}
-            />
+            <div className="input-group">
+              <Form.Control
+                type={showConfirmPwd ? "text" : "password"}
+                placeholder="Confirm new password"
+                value={confirmNew}
+                onChange={(e) => setConfirmNew(e.target.value)}
+                disabled={loading}
+              />
+              <Button
+                variant="light"
+                className="border"
+                onClick={() => setShowConfirmPwd((v) => !v)}
+                disabled={loading}
+              >
+                <i
+                  className={`bi ${showConfirmPwd ? "bi-eye-slash" : "bi-eye"}`}
+                />
+              </Button>
+            </div>
           </Form.Group>
 
           <Button
@@ -166,6 +209,12 @@ export default function Profile() {
           </Button>
         </Card.Body>
       </Card>
+
+      {isAdmin && (
+        <Link to="/admin" className="btn btn-danger btn-sm rounded-pill mt-4">
+          Admin Panel
+        </Link>
+      )}
     </div>
   );
 }

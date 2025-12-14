@@ -1,38 +1,46 @@
-// src/pages/AdminPanel.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { useProfile } from "../contexts/ProfileContext";
 import { format, parseISO } from "date-fns";
-import { Modal, Button, Form } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  Form,
+  Card,
+  Badge,
+  Row,
+  Col,
+  ToastContainer,
+  ButtonGroup,
+} from "react-bootstrap";
+import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
+import Header from "../components/Header";
 
 export default function AdminPanel() {
   const { isAdmin } = useProfile();
 
-  // local state
+  /* ---------- state ---------- */
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Extend modal state
   const [showExtend, setShowExtend] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
-  const [pickedDate, setPickedDate] = useState(""); // YYYY-MM-DD
-  const [pickedTime, setPickedTime] = useState(""); // HH:MM
+  const [pickedDate, setPickedDate] = useState("");
+  const [pickedTime, setPickedTime] = useState("");
   const [computedDays, setComputedDays] = useState(0);
   const [computedTargetISO, setComputedTargetISO] = useState(null);
 
-  // load users
+  /* ---------- data ---------- */
   const load = async () => {
     setLoading(true);
     let query = supabase.from("profiles").select("*");
-
-    if (search.trim() !== "") {
+    if (search.trim() !== "")
       query = query.ilike("email", `%${search.trim()}%`);
-    }
-
     const { data, error } = await query.order("tier", { ascending: true });
     if (error) {
-      console.error("Error loading users:", error);
+      toast.error("Failed to load users");
       setUsers([]);
     } else {
       setUsers(data || []);
@@ -42,20 +50,16 @@ export default function AdminPanel() {
 
   useEffect(() => {
     load();
-    // you may add realtime subscription here later
   }, [search]);
 
-  // Derived lists (exclude admin accounts from lists)
   const nonAdminUsers = useMemo(
-    () => users.filter((u) => u.is_admin !== true),
+    () => users.filter((u) => !u.is_admin),
     [users]
   );
-
   const premiumUsers = useMemo(() => {
     return nonAdminUsers
       .filter((u) => u.tier === "premium")
       .sort((a, b) => {
-        // nulls pushed to end
         if (!a.tier_expires_at) return 1;
         if (!b.tier_expires_at) return -1;
         return new Date(a.tier_expires_at) - new Date(b.tier_expires_at);
@@ -67,39 +71,31 @@ export default function AdminPanel() {
     [nonAdminUsers]
   );
 
-  // open extend modal
+  /* ---------- extend modal ---------- */
   const openExtendModal = (user) => {
     setTargetUser(user);
-
-    // default picked date/time:
-    // if user is premium with expiry -> default to expiry date/time
-    // else default to today + current time
     const from = user?.tier_expires_at
       ? parseISO(user.tier_expires_at)
       : new Date();
     const iso = new Date(from);
-    const yyyy = iso.toISOString().slice(0, 10); // YYYY-MM-DD
-    const hhmm = `${String(iso.getHours()).padStart(2, "0")}:${String(
-      iso.getMinutes()
-    ).padStart(2, "0")}`;
-
-    setPickedDate(yyyy);
-    setPickedTime(hhmm);
-
-    // compute initial diff
-    computeDiff(yyyy, hhmm, user);
+    setPickedDate(iso.toISOString().slice(0, 10));
+    setPickedTime(
+      `${String(iso.getHours()).padStart(2, "0")}:${String(
+        iso.getMinutes()
+      ).padStart(2, "0")}`
+    );
+    computeDiff(
+      iso.toISOString().slice(0, 10),
+      `${String(iso.getHours()).padStart(2, "0")}:${String(
+        iso.getMinutes()
+      ).padStart(2, "0")}`,
+      user
+    );
     setShowExtend(true);
   };
 
-  // compute difference in days between base (current expiry or now) and chosen
-  function computeDiff(dateStr, timeStr, user) {
-    if (!dateStr) {
-      setComputedDays(0);
-      setComputedTargetISO(null);
-      return;
-    }
-
-    // build target datetime local
+  const computeDiff = (dateStr, timeStr, user) => {
+    if (!dateStr) return setComputedDays(0);
     const [yyyy, mm, dd] = dateStr.split("-");
     const [hh = "00", min = "00"] = (timeStr || "").split(":");
     const target = new Date(
@@ -110,95 +106,128 @@ export default function AdminPanel() {
       Number(min),
       0
     );
-
     const base =
       user?.tier === "premium" && user?.tier_expires_at
         ? parseISO(user.tier_expires_at)
         : new Date();
-
-    // difference in days (round to nearest int)
     const diffDays = Math.round((target - base) / (24 * 60 * 60 * 1000));
-
     setComputedDays(diffDays);
     setComputedTargetISO(target.toISOString());
-  }
+  };
 
-  // when the admin confirms extension
   const confirmExtend = async () => {
     if (!targetUser || !pickedDate) return;
-
-    // compute final target datetime again (safety)
-    const [yyyy, mm, dd] = pickedDate.split("-");
-    const [hh = "00", min = "00"] = pickedTime.split(":");
-    const target = new Date(
-      Number(yyyy),
-      Number(mm) - 1,
-      Number(dd),
-      Number(hh),
-      Number(min),
-      0
-    );
-
     try {
-      // Update profile: set tier to premium, set tier_expires_at to target
       const { error } = await supabase
         .from("profiles")
-        .update({
-          tier: "premium",
-          tier_expires_at: target.toISOString(), // store timestamp
-        })
+        .update({ tier: "premium", tier_expires_at: computedTargetISO })
         .eq("id", targetUser.id);
-
       if (error) throw error;
-
-      // reload list and close modal
+      toast.success("Premium extended");
       await load();
       setShowExtend(false);
       setTargetUser(null);
-    } catch (err) {
-      console.error("Error extending user:", err);
-      alert("Failed to extend. See console for details.");
+    } catch {
+      toast.error("Extension failed");
     }
   };
 
   const demoteUser = async (id) => {
-    if (!confirm("Demote this user to free?")) return;
-
+    const confirmed = await new Promise((res) =>
+      window.confirm("Demote this user to free?") ? res(true) : res(false)
+    );
+    if (!confirmed) return;
     await supabase
       .from("profiles")
       .update({ tier: "free", tier_expires_at: null })
       .eq("id", id);
+    toast.info("User demoted to free");
     load();
   };
 
   const deleteUser = async (id) => {
-    if (!confirm("Delete this user?")) return;
+    const confirmed = await new Promise((res) =>
+      window.confirm("Delete this user permanently?") ? res(true) : res(false)
+    );
+    if (!confirmed) return;
     await supabase.from("profiles").delete().eq("id", id);
+    toast.info("User deleted");
     load();
   };
 
-  if (!isAdmin) {
-    return <p className="p-4">Access denied.</p>;
-  }
+  if (!isAdmin)
+    return <p className="p-4 text-center text-muted">Access denied.</p>;
 
+  /* ---------- visual helpers ---------- */
+  const GlassCard = ({ children }) => (
+    <Card
+      className="border-0 shadow-sm mb-4"
+      style={{
+        background: "rgba(232, 241, 246, 0.75)",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <Card.Body>{children}</Card.Body>
+    </Card>
+  );
+
+  const PremiumButton = ({ children, onClick, variant = "warning" }) => (
+    <Button
+      variant={variant}
+      onClick={onClick}
+      className="rounded-pill px-3"
+      style={
+        variant === "warning"
+          ? {
+              background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
+              border: "none",
+              boxShadow: "0 0 12px rgba(253, 203, 110, .6)",
+              color: "#744210",
+            }
+          : {}
+      }
+    >
+      {children}
+    </Button>
+  );
+
+  /* ---------- render ---------- */
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-xl font-bold mb-3">Admin Panel</h1>
+    <div className="container py-4" style={{ maxWidth: 900, marginBottom: 80 }}>
+      <Row className="align-items-center mb-4">
+        <Col>
+          <h1 className="fw-bold">Admin Panel</h1>
+        </Col>
+        <Col xs="auto">
+          <Button variant="outline-secondary" size="sm" onClick={load}>
+            Refresh
+          </Button>
+        </Col>
+      </Row>
 
-      <div className="mb-4 d-flex gap-2">
-        <Form.Control
-          value={search}
-          placeholder="Search by email..."
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Button onClick={load}>Refresh</Button>
-      </div>
+      <GlassCard>
+        <Row className="g-2 align-items-center">
+          <Col md={8}>
+            <Form.Control
+              placeholder="Search by email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="rounded-pill"
+            />
+          </Col>
+          <Col md={4} className="d-flex gap-2">
+            <Badge bg="secondary">{users.length} users</Badge>
+            <Badge bg="success">{premiumUsers.length} premium</Badge>
+            <Badge bg="secondary">{freeUsers.length} free</Badge>
+          </Col>
+        </Row>
+      </GlassCard>
 
       {loading ? (
-        <p className="text-gray-500">Loading users...</p>
+        <div className="text-center py-5 text-muted">Loading users...</div>
       ) : (
         <>
-          <h2 className="text-lg font-semibold mt-4 mb-2">Premium Users</h2>
+          <h4 className="fw-semibold mb-3">Premium Users</h4>
           <UserTable
             users={premiumUsers}
             onExtend={openExtendModal}
@@ -206,7 +235,7 @@ export default function AdminPanel() {
             onDelete={deleteUser}
           />
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">Free Users</h2>
+          <h4 className="fw-semibold mb-3 mt-5">Free Users</h4>
           <UserTable
             users={freeUsers}
             onExtend={openExtendModal}
@@ -217,134 +246,151 @@ export default function AdminPanel() {
       )}
 
       {/* Extend Modal */}
-      <Modal show={showExtend} onHide={() => setShowExtend(false)}>
+      <Modal show={showExtend} onHide={() => setShowExtend(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {targetUser
-              ? `Extend premium for ${targetUser.email ?? targetUser.name}`
-              : "Extend"}
-          </Modal.Title>
+          <Modal.Title>Extend Premium</Modal.Title>
         </Modal.Header>
-
         <Modal.Body>
           {targetUser && (
             <>
-              <p className="text-sm">
-                Current tier: <strong>{targetUser.tier}</strong>
+              <p className="mb-2">
+                <strong>User:</strong> {targetUser.email ?? targetUser.name}
               </p>
-              <p className="text-sm mb-3">
-                Current expiry:{" "}
-                <strong>
-                  {targetUser.tier_expires_at
-                    ? format(
-                        parseISO(targetUser.tier_expires_at),
-                        "yyyy-MM-dd HH:mm"
-                      )
-                    : "No expiry (not premium)"}
-                </strong>
+              <p className="mb-2">
+                <strong>Current expiry:</strong>{" "}
+                {targetUser.tier_expires_at
+                  ? format(
+                      parseISO(targetUser.tier_expires_at),
+                      "yyyy-MM-dd HH:mm"
+                    )
+                  : "Not premium"}
               </p>
 
-              <Form.Label>Pick new expiry date</Form.Label>
-              <div className="d-flex gap-2 mb-2">
-                <Form.Control
-                  type="date"
-                  value={pickedDate}
-                  onChange={(e) => {
-                    setPickedDate(e.target.value);
-                    computeDiff(e.target.value, pickedTime, targetUser);
-                  }}
-                />
-                <Form.Control
-                  type="time"
-                  value={pickedTime}
-                  onChange={(e) => {
-                    setPickedTime(e.target.value);
-                    computeDiff(pickedDate, e.target.value, targetUser);
-                  }}
-                />
-              </div>
+              <Form.Label>Pick new expiry</Form.Label>
+              <Row className="g-2 mb-3">
+                <Col>
+                  <Form.Control
+                    type="date"
+                    value={pickedDate}
+                    onChange={(e) => {
+                      setPickedDate(e.target.value);
+                      computeDiff(e.target.value, pickedTime, targetUser);
+                    }}
+                  />
+                </Col>
+                <Col>
+                  <Form.Control
+                    type="time"
+                    value={pickedTime}
+                    onChange={(e) => {
+                      setPickedTime(e.target.value);
+                      computeDiff(pickedDate, e.target.value, targetUser);
+                    }}
+                  />
+                </Col>
+              </Row>
 
-              <p className="text-sm">
-                Target expiry:{" "}
-                <strong>
-                  {computedTargetISO
-                    ? format(parseISO(computedTargetISO), "yyyy-MM-dd HH:mm")
-                    : "-"}
-                </strong>
+              <p className="mb-1">
+                <strong>New expiry:</strong>{" "}
+                {computedTargetISO
+                  ? format(parseISO(computedTargetISO), "yyyy-MM-dd HH:mm")
+                  : "-"}
               </p>
-
-              <p className="text-sm">
-                This will{" "}
-                <strong>{computedDays >= 0 ? "add" : "remove"}</strong>{" "}
-                <strong>{Math.abs(computedDays)}</strong> day
-                {Math.abs(computedDays) !== 1 ? "s" : ""}{" "}
-                {computedDays >= 0 ? "to" : "from"} the user's current expiry.
+              <p className="mb-0">
+                <strong>Change:</strong> {computedDays >= 0 ? "+" : "-"}
+                {Math.abs(computedDays)} day
+                {Math.abs(computedDays) !== 1 ? "s" : ""}
               </p>
             </>
           )}
         </Modal.Body>
-
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowExtend(false)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowExtend(false)}
+          >
             Cancel
           </Button>
-          <Button variant="primary" onClick={confirmExtend}>
-            Confirm
-          </Button>
+          <PremiumButton onClick={confirmExtend}>Confirm</PremiumButton>
         </Modal.Footer>
       </Modal>
+
+      <ToastContainer position="bottom-center" />
     </div>
   );
 }
 
-/** Simple table component */
+/* ---------- reusable table ---------- */
 function UserTable({ users, onExtend, onDemote, onDelete }) {
+  if (users.length === 0)
+    return <Card className="border-0 shadow-sm text-center p-4">No users</Card>;
+
   return (
-    <table className="w-full border">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="p-2 border">Name</th>
-          <th className="p-2 border">Email</th>
-          <th className="p-2 border">Tier</th>
-          <th className="p-2 border">Expiry (local)</th>
-          <th className="p-2 border">Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {users.map((u) => (
-          <tr key={u.id}>
-            <td className="p-2 border">{u.name}</td>
-            <td className="p-2 border">{u.email ?? "-"}</td>
-            <td className="p-2 border">{u.tier}</td>
-            <td className="p-2 border">
-              {u.tier_expires_at
-                ? format(parseISO(u.tier_expires_at), "yyyy-MM-dd HH:mm")
-                : "-"}
-            </td>
-            <td className="p-2 border">
-              <Button size="sm" className="me-2" onClick={() => onExtend(u)}>
-                Extend
-              </Button>
-
-              {u.tier === "premium" && (
-                <Button
-                  size="sm"
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => onDemote(u.id)}
-                >
-                  Demote
-                </Button>
-              )}
-
-              <Button size="sm" variant="danger" onClick={() => onDelete(u.id)}>
-                Delete
-              </Button>
-            </td>
+    <div className="table-responsive">
+      <Header />
+      <Navbar />
+      <table className="table table-hover align-middle mb-0">
+        <thead className="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Tier</th>
+            <th>Expires</th>
+            <th>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td>{u.name}</td>
+              <td>{u.email ?? "-"}</td>
+              <td>
+                <Badge
+                  bg={u.tier === "premium" ? "warning" : "secondary"}
+                  text={u.tier === "premium" ? "dark" : ""}
+                  style={
+                    u.tier === "premium"
+                      ? {
+                          backgroundColor: "#f1cf6bff",
+                          border: "1px solid #dbc276ff",
+                        }
+                      : {}
+                  }
+                >
+                  {u.tier}
+                </Badge>
+              </td>
+              <td>
+                {u.tier_expires_at
+                  ? format(parseISO(u.tier_expires_at), "yyyy-MM-dd HH:mm")
+                  : "-"}
+              </td>
+              <td>
+                <ButtonGroup size="sm">
+                  <Button variant="outline-primary" onClick={() => onExtend(u)}>
+                    Extend
+                  </Button>
+                  {u.tier === "premium" && (
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() => onDemote(u.id)}
+                    >
+                      Demote
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => onDelete(u.id)}
+                  >
+                    Delete
+                  </Button>
+                </ButtonGroup>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

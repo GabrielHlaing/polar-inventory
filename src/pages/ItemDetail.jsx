@@ -4,6 +4,7 @@ import { useCart } from "../contexts/CartContext";
 import { useEffect, useState } from "react";
 import { Modal, Button, Form, Card, Badge, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
+import FabBack from "../components/FabBack";
 
 export default function ItemDetails() {
   const { id } = useParams();
@@ -22,21 +23,20 @@ export default function ItemDetails() {
   const [editExp, setEditExp] = useState("");
 
   useEffect(() => {
-    if (item) {
-      setEditName(item.name);
-      setEditQty(item.qty);
-      setEditPurchase(item.purchase_price ?? "");
-      setEditSale(item.sale_price ?? "");
-      setEditMfg(item.mfg_date ?? "");
-      setEditExp(item.exp_date ?? "");
-    }
-  }, [item]);
-
-  useEffect(() => {
     if (!item) navigate("/inventory", { replace: true });
   }, [item, navigate]);
 
   if (!item) return null;
+
+  const openEditModal = () => {
+    setEditName(item.name);
+    setEditQty(item.qty);
+    setEditPurchase(item.purchase_price ?? "");
+    setEditSale(item.sale_price ?? "");
+    setEditMfg(item.mfg_date ?? "");
+    setEditExp(item.exp_date ?? "");
+    setShowEdit(true);
+  };
 
   const saveUpdates = async () => {
     await updateItem(id, {
@@ -52,9 +52,7 @@ export default function ItemDetails() {
   };
 
   const handleDelete = async () => {
-    const confirmed = await new Promise((res) =>
-      window.confirm("Delete this item permanently?") ? res(true) : res(false)
-    );
+    const confirmed = window.confirm("Delete this item permanently?");
     if (confirmed) {
       await deleteItem(id);
       toast.info("Item deleted");
@@ -62,14 +60,13 @@ export default function ItemDetails() {
     }
   };
 
-  /* ---------- visual helpers ---------- */
+  /* ---------- detail card ---------- */
   const DetailCard = () => (
     <Card
       className="border-0 shadow-lg mb-4"
       style={{
         background: "linear-gradient(135deg, #ffffff 0%, #f9fbfd 100%)",
         borderRadius: 16,
-        overflow: "hidden",
       }}
     >
       <Card.Body>
@@ -91,16 +88,38 @@ export default function ItemDetails() {
           </Col>
           <Col xs={6} md={3}>
             <div className="text-muted small">Mfg</div>
-            <div className="fw-semibold">{item.mfg_date ?? "-"}</div>
+            <div className="fw-semibold">
+              {item.mfg_date
+                ? new Date(item.mfg_date).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "-"}
+            </div>
           </Col>
           <Col xs={6} md={3}>
             <div className="text-muted small">Exp</div>
-            <div className="fw-semibold">{item.exp_date ?? "-"}</div>
+            <div className="fw-semibold">
+              {item.exp_date
+                ? new Date(item.exp_date).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "-"}
+            </div>
           </Col>
           <Col xs={12}>
             <div className="text-muted small">Created</div>
             <div className="fw-semibold">
-              {new Date(item.created_at).toLocaleString()}
+              {item.created_at
+                ? new Date(item.created_at).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "-"}
             </div>
           </Col>
         </Row>
@@ -111,18 +130,19 @@ export default function ItemDetails() {
             className="rounded-pill px-3"
             onClick={() => {
               addToCart(item);
-              toast.success("Added to cart");
             }}
           >
             Add to Cart
           </Button>
+
           <Button
             className="rounded-pill px-3"
             style={{ background: "#2b6cb0", border: "none" }}
-            onClick={() => setShowEdit(true)}
+            onClick={openEditModal}
           >
             Edit
           </Button>
+
           <Button
             variant="outline-danger"
             className="rounded-pill px-3"
@@ -135,106 +155,95 @@ export default function ItemDetails() {
     </Card>
   );
 
-  /* ---------- edit modal ---------- */
-  const EditModal = () => (
-    <Modal show={showEdit} onHide={() => setShowEdit(false)} centered>
-      <Modal.Header
-        closeButton
-        style={{
-          background: "linear-gradient(135deg, #2b6cb0 0%, #5a9fd4 100%)",
-          color: "#fff",
-        }}
-      >
-        <Modal.Title>Edit Item</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Quantity</Form.Label>
-            <Form.Control
-              type="number"
-              value={editQty}
-              onChange={(e) => setEditQty(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Purchase Price</Form.Label>
-            <Form.Control
-              type="number"
-              step="0.01"
-              value={editPurchase}
-              onChange={(e) => setEditPurchase(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Sale Price</Form.Label>
-            <Form.Control
-              type="number"
-              step="0.01"
-              value={editSale}
-              onChange={(e) => setEditSale(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Mfg Date</Form.Label>
-            <Form.Control
-              type="date"
-              value={editMfg}
-              onChange={(e) => setEditMfg(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Exp Date</Form.Label>
-            <Form.Control
-              type="date"
-              value={editExp}
-              onChange={(e) => setEditExp(e.target.value)}
-            />
-          </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setShowEdit(false)}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          style={{ backgroundColor: "#2b6cb0", border: "none" }}
-          onClick={saveUpdates}
-        >
-          Save
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
-
   return (
-    <div className="container py-4" style={{ maxWidth: 680 }}>
+    <div className="container py-4" style={{ maxWidth: 680, marginTop: 80 }}>
+      <FabBack />
       <DetailCard />
-      <Button
-        variant="outline-secondary"
-        className="rounded-pill mb-3"
-        onClick={() => navigate(-1)}
-      >
-        ← Back
-      </Button>
-      <EditModal />
 
-      <style>{`
-        .hover-shadow:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
-      `}</style>
+      {/* ONE permanent modal – never re-created */}
+      <Modal show={showEdit} onHide={() => setShowEdit(false)} centered>
+        <Modal.Header
+          closeButton
+          style={{
+            background: "linear-gradient(135deg, #2b6cb0 0%, #5a9fd4 100%)",
+            color: "#fff",
+          }}
+        >
+          <Modal.Title>Edit Item</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Quantity</Form.Label>
+              <Form.Control
+                type="number"
+                value={editQty}
+                onChange={(e) => setEditQty(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Purchase Price</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={editPurchase}
+                onChange={(e) => setEditPurchase(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Sale Price</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={editSale}
+                onChange={(e) => setEditSale(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Mfg Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={editMfg}
+                onChange={(e) => setEditMfg(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Exp Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={editExp}
+                onChange={(e) => setEditExp(e.target.value)}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowEdit(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            style={{ backgroundColor: "#2b6cb0", border: "none" }}
+            onClick={saveUpdates}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

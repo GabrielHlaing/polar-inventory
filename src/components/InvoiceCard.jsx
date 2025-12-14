@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, Badge, Button, Form, Modal } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { FaAddressBook, FaPhoneAlt, FaUser } from "react-icons/fa";
+import { FaUser, FaPhoneAlt, FaAddressBook } from "react-icons/fa";
 
 export default function InvoiceCard({
   invoice,
@@ -13,40 +13,90 @@ export default function InvoiceCard({
 }) {
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(invoice);
+  const [editData, setEditData] = useState({
+    ...invoice,
+    history: Array.isArray(invoice.history) ? [...invoice.history] : [],
+  });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const customer = invoice.customer;
-  const items = (isEditing ? editData.history : invoice.history) || [];
-  const isPurchase = (isEditing ? editData.type : invoice.type) === "purchase";
-  const formattedDate = new Date(
-    isEditing ? editData.created_at : invoice.created_at
-  ).toLocaleDateString();
+  const data = isEditing ? editData : invoice;
+  const items = data.history || [];
+  const customer = data.customer;
+  const isPurchase = data.type === "purchase";
+
+  const formattedDate = new Date(data.created_at).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
   const getPrice = (item) =>
     isPurchase
       ? Number(item.purchase_price || 0)
       : Number(item.sale_price || 0);
+
   const calcTotal = (item) => Number(item.qty_change) * getPrice(item);
+
+  /* ---------- live subtotal while editing ---------- */
+  const subtotal = isEditing
+    ? (editData.history || []).reduce(
+        (s, i) =>
+          s +
+          Number(i.qty_change) *
+            (isPurchase
+              ? Number(i.purchase_price || 0)
+              : Number(i.sale_price || 0)),
+        0
+      )
+    : (invoice.history || []).reduce(
+        (s, i) =>
+          s +
+          Number(i.qty_change) *
+            (isPurchase
+              ? Number(i.purchase_price || 0)
+              : Number(i.sale_price || 0)),
+        0
+      );
 
   /* ---------- edit ---------- */
   const handleStartEdit = () => {
-    setEditData(invoice);
+    setEditData({
+      ...invoice,
+      history: Array.isArray(invoice.history) ? [...invoice.history] : [],
+    });
     setIsEditing(true);
     setOpen(true);
   };
 
-  const handleCancelEdit = () => setIsEditing(false);
-
+  /* ---------- save ---------- */
+  // InvoiceCard.jsx
   const handleSaveEdit = async () => {
-    if (processing) return;
-    const updated = {
+    if (processing || saving) return;
+
+    setSaving(true);
+
+    // guarantee we always send an array
+    const safeHistory = Array.isArray(editData.history) ? editData.history : [];
+
+    const freshTotal = safeHistory.reduce(
+      (s, i) =>
+        s +
+        Number(i.qty_change) *
+          (isPurchase
+            ? Number(i.purchase_price || 0)
+            : Number(i.sale_price || 0)),
+      0
+    );
+
+    await onEdit({
       ...editData,
-      total_amount: editData.history.reduce((s, i) => s + calcTotal(i), 0),
-    };
-    await onEdit(invoice.id, updated);
-    toast.success("Invoice updated");
+      history: safeHistory,
+      total_amount: freshTotal,
+    });
+
     setIsEditing(false);
+    setSaving(false);
     loadItems();
   };
 
@@ -55,241 +105,247 @@ export default function InvoiceCard({
     if (processing) return;
     setShowDeleteModal(false);
     await onDelete(invoice.id);
-    toast.success("Invoice deleted");
     loadItems();
   };
 
-  /* ---------- item field update ---------- */
-  const updateItemField = (itemId, field, value) =>
-    setEditData((p) => ({
-      ...p,
-      history: p.history.map((i) =>
-        i.id === itemId ? { ...i, [field]: value } : i
-      ),
-    }));
+  const updateItemField = (id, field, value) =>
+    setEditData((p) => {
+      const history = Array.isArray(p.history) ? p.history : [];
 
-  /* ---------- UI helpers ---------- */
-  const Pill = ({ children, bg }) => (
-    <Badge bg={bg} className="ms-auto">
-      {children}
-    </Badge>
-  );
+      return {
+        ...p,
+        history: history.map((i) =>
+          i.id === id ? { ...i, [field]: value } : i
+        ),
+      };
+    });
 
   return (
     <>
-      <Card
-        className="mb-3 shadow-sm border-0"
-        style={{ cursor: "pointer" }}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <Card.Header className="d-flex justify-content-between align-items-center py-3">
+      <Card className="mb-2 shadow-sm border-0">
+        {/* ---------- HEADER ---------- */}
+        <Card.Header
+          className="d-flex justify-content-between align-items-center py-3"
+          role="button"
+          onClick={() => setOpen((v) => !v)}
+        >
           <div>
-            <div className="fw-bold">Invoice #{invoice.invoice_number}</div>
+            <div className="fw-bold fs-6">
+              Invoice #{invoice.invoice_number}
+            </div>
             <small className="text-muted">{formattedDate}</small>
           </div>
-          <div className="d-flex align-items-center gap-2">
-            <Pill bg={isPurchase ? "primary" : "success"}>{invoice.type}</Pill>
+
+          <div className="text-end">
+            <Badge bg={isPurchase ? "primary" : "success"} className="mb-1">
+              {data.type}
+            </Badge>
             <div className="fw-semibold">
-              {invoice.total_amount?.toLocaleString()} Ks
+              {data.total_amount?.toLocaleString()} Ks
             </div>
           </div>
         </Card.Header>
 
-        <Card.Body className={open ? "border-top bg-light" : "d-none"}>
-          {/* actions */}
-          <div className="d-flex flex-wrap justify-content-end gap-2 mb-3">
-            {!isEditing && (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline-secondary"
-                  as={Link}
-                  to={`/history/${invoice.id}/print`}
-                >
-                  Print
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleStartEdit();
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline-danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDeleteModal(true);
-                  }}
-                >
-                  Delete
-                </Button>
-              </>
-            )}
-            {isEditing && (
-              <>
-                <Button
-                  size="sm"
-                  variant="success"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSaveEdit();
-                  }}
-                  disabled={processing}
-                >
-                  {processing ? "Saving…" : "Save"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCancelEdit();
-                  }}
-                >
-                  Cancel
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* customer info */}
-          <Card
-            className="mb-3 border-0"
-            style={{
-              background: "linear-gradient(135deg,#e6f7ff 0%,#ffffff 100%)",
-            }}
+        {/* ---------- BODY ---------- */}
+        {open && (
+          <Card.Body
+            className="border-top"
+            style={{ backgroundColor: "#edededed", border: "1px solid #ddd" }}
           >
-            <Card.Body>
-              <div className="fw-semibold mb-2">Customer</div>
-              {customer ? (
-                <div className="small">
-                  {customer.name && (
-                    <div>
-                      <FaUser /> {customer.name}
-                    </div>
-                  )}
-                  {customer.phone && (
-                    <div>
-                      <FaPhoneAlt /> {customer.phone}
-                    </div>
-                  )}
-                  {customer.address && (
-                    <div className="text-muted">
-                      <FaAddressBook /> {customer.address}
-                    </div>
-                  )}
-                </div>
+            {/* ACTIONS */}
+            <div className="d-flex justify-content-end gap-2 mb-3">
+              {!isEditing ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    as={Link}
+                    to={`/history/${invoice.id}/print`}
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartEdit();
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline-danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </>
               ) : (
-                <div className="text-muted fst-italic">No customer info</div>
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="success"
+                    onClick={handleSaveEdit}
+                    disabled={processing}
+                  >
+                    {processing ? "Saving…" : "Save"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                </>
               )}
-            </Card.Body>
-          </Card>
+            </div>
 
-          {/* items table */}
-          <Card className="border-0">
-            <Card.Header className="d-none d-md-flex bg-transparent fw-semibold small">
-              <div className="col-5">Item</div>
-              <div className="col-2 text-center">Qty</div>
-              <div className="col-2 text-end">Price</div>
-              <div className="col-3 text-end">Total</div>
-            </Card.Header>
-            <Card.Body className="p-0">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="d-flex flex-column flex-md-row align-items-md-center border-bottom py-2 px-3 gap-2"
-                >
-                  {/* name */}
-                  <div className="flex-fill">
-                    {isEditing ? (
-                      <Form.Control
-                        size="sm"
-                        value={item.metadata?.name || ""}
-                        onChange={(e) =>
-                          updateItemField(item.id, "metadata", {
-                            ...item.metadata,
-                            name: e.target.value,
-                          })
-                        }
-                      />
-                    ) : (
-                      <div className="fw-medium">{item.metadata?.name}</div>
+            {/* CUSTOMER */}
+            <Card className="mb-3 border-0 shadow-sm">
+              <Card.Body>
+                <div className="fw-semibold mb-2">Customer</div>
+                {customer ? (
+                  <div className="row small text-muted">
+                    {customer.name && (
+                      <div className="col-md-4">
+                        <FaUser className="me-1" />
+                        {customer.name}
+                      </div>
                     )}
-                  </div>
-
-                  {/* qty */}
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="text-muted d-md-none">Qty:</span>
-                    {isEditing ? (
-                      <Form.Control
-                        size="sm"
-                        type="number"
-                        min={1}
-                        value={item.qty_change}
-                        onChange={(e) =>
-                          updateItemField(
-                            item.id,
-                            "qty_change",
-                            Number(e.target.value)
-                          )
-                        }
-                        style={{ width: 70 }}
-                      />
-                    ) : (
-                      <div className="text-center">{item.qty_change}</div>
+                    {customer.phone && (
+                      <div className="col-md-4">
+                        <FaPhoneAlt className="me-1" />
+                        {customer.phone}
+                      </div>
                     )}
-                  </div>
-
-                  {/* price */}
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="text-muted d-md-none">Price:</span>
-                    {isEditing ? (
-                      <Form.Control
-                        size="sm"
-                        type="number"
-                        step="0.01"
-                        value={getPrice(item)}
-                        onChange={(e) =>
-                          updateItemField(
-                            item.id,
-                            isPurchase ? "purchase_price" : "sale_price",
-                            e.target.value
-                          )
-                        }
-                        style={{ width: 100 }}
-                      />
-                    ) : (
-                      <div className="text-end">
-                        {getPrice(item).toLocaleString()} Ks
+                    {customer.address && (
+                      <div className="col-md-4">
+                        <FaAddressBook className="me-1" />
+                        {customer.address}
                       </div>
                     )}
                   </div>
+                ) : (
+                  <div className="fst-italic text-muted">No customer info</div>
+                )}
+              </Card.Body>
+            </Card>
 
-                  {/* total */}
-                  <div className="fw-semibold text-end">
-                    {calcTotal(item).toLocaleString()} Ks
-                  </div>
-                </div>
+            {/* ITEMS */}
+            <div className="mb-3">
+              {/* desktop header */}
+              <div className="d-none d-md-flex fw-semibold small text-muted px-2 mb-2">
+                <div className="col-5">Item</div>
+                <div className="col-2 text-center">Qty</div>
+                <div className="col-2 text-end">Price</div>
+                <div className="col-3 text-end">Total</div>
+              </div>
+
+              {items.map((item) => (
+                <Card key={item.id} className="mb-2 border-0 shadow-sm">
+                  <Card.Body className="py-2">
+                    <div className="row align-items-center">
+                      {/* name */}
+                      <div className="col-md-5 fw-medium">
+                        {isEditing ? (
+                          <Form.Control
+                            size="sm"
+                            value={item.metadata?.name || ""}
+                            onChange={(e) =>
+                              updateItemField(item.id, "metadata", {
+                                ...item.metadata,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          item.metadata?.name
+                        )}
+                      </div>
+
+                      {/* qty */}
+                      <div className="col-md-2 text-md-center small">
+                        <span className="d-md-none text-muted">Qty: </span>
+                        {isEditing ? (
+                          <Form.Control
+                            size="sm"
+                            type="number"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={item.qty_change ?? ""}
+                            onChange={(e) =>
+                              updateItemField(
+                                item.id,
+                                "qty_change",
+                                e.target.value === "" ? "" : e.target.value
+                              )
+                            }
+                            onBlur={(e) =>
+                              updateItemField(
+                                item.id,
+                                "qty_change",
+                                Math.max(1, Number(e.target.value || 1))
+                              )
+                            }
+                          />
+                        ) : (
+                          item.qty_change
+                        )}
+                      </div>
+
+                      {/* price */}
+                      <div className="col-md-2 text-md-end small">
+                        <span className="d-md-none text-muted">Price: </span>
+                        {isEditing ? (
+                          <Form.Control
+                            size="sm"
+                            type="number"
+                            value={getPrice(item)}
+                            onChange={(e) =>
+                              updateItemField(
+                                item.id,
+                                isPurchase ? "purchase_price" : "sale_price",
+                                e.target.value
+                              )
+                            }
+                          />
+                        ) : (
+                          `${getPrice(item).toLocaleString()} Ks`
+                        )}
+                      </div>
+
+                      {/* total */}
+                      <div className="col-md-3 text-md-end fw-semibold">
+                        <span className="d-md-none text-muted">Total: </span>
+                        {calcTotal(item).toLocaleString()} Ks
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
               ))}
-            </Card.Body>
-          </Card>
-
-          {/* grand total */}
-          <div className="text-end mt-3">
-            <div className="fw-bold">
-              Subtotal:{" "}
-              {items.reduce((s, i) => s + calcTotal(i), 0).toLocaleString()} Ks
             </div>
-          </div>
-        </Card.Body>
+
+            {/* TOTAL */}
+            <div className="d-flex justify-content-end">
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="fw-bold">
+                  Grand Total: {subtotal.toLocaleString()} Ks
+                </Card.Body>
+              </Card>
+            </div>
+          </Card.Body>
+        )}
       </Card>
 
-      {/* delete confirmation modal */}
+      {/* DELETE MODAL */}
       <Modal
         show={showDeleteModal}
         centered
