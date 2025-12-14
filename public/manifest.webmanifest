@@ -1,6 +1,6 @@
 {
   "name": "Polar-inventory",
-  "short_name": "Polar-Inventory",
+  "short_name": "Inventory",
   "description": "Simple inventory & billing PWA",
   "start_url": "/",
   "display": "standalone",
