@@ -76,7 +76,7 @@ export default function Signup() {
         {/* Header */}
         <div className="text-center mb-4">
           <img
-            src="/polar-logo.png"
+            src="/Polar-logo.png"
             alt="Polar Inventory"
             height="52"
             className="mb-3"
