@@ -40,7 +40,7 @@ const FONT_OPTIONS = [
   { label: "Playfair Display", value: "Playfair Display, serif" },
   { label: "Crimson Text", value: "Crimson Text, serif" },
 
-  // --- Calligraphic (Stylish but readable) ---
+  // --- Calligraphic (Stylish) ---
   { label: "Dancing Script", value: "Dancing Script, cursive" },
   { label: "Caveat", value: "Caveat, cursive" },
   { label: "Satisfy", value: "Satisfy, cursive" },

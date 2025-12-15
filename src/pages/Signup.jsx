@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -9,46 +9,23 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   async function handleSignup(e) {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name, email } },
-    });
-
-    if (signupError) {
-      toast.error(signupError.message);
+    try {
+      await signup(email, password, name);
+      toast.success("Account created! Please log in.");
+      navigate("/login", { replace: true });
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 7);
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        name,
-        email,
-        tier: "premium",
-        tier_expires_at: expires.toISOString(),
-      })
-      .eq("id", data.user.id);
-
-    setLoading(false);
-
-    if (updateError) {
-      toast.error("Could not update profile.");
-      return;
-    }
-
-    toast.success("Account created! Please log in.");
-    navigate("/login");
   }
 
   return (

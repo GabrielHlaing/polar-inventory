@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   BsHouse,
   BsBoxSeam,
@@ -8,6 +8,9 @@ import {
 } from "react-icons/bs";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const tabs = [
     { to: "/", label: "Home", icon: <BsHouse /> },
     { to: "/inventory", label: "Inventory", icon: <BsBoxSeam /> },
@@ -15,6 +18,11 @@ export default function Navbar() {
     { to: "/more-info", label: "More Info", icon: <BsInfoCircle /> },
     { to: "/settings", label: "Settings", icon: <BsGear /> },
   ];
+
+  const handleNav = (to) => {
+    if (location.pathname === to) return; // avoid useless replace
+    navigate(to, { replace: true });
+  };
 
   return (
     <>
@@ -31,9 +39,11 @@ export default function Navbar() {
           <NavLink
             key={t.to}
             to={t.to}
-            className={({ isActive }) =>
-              `d-flex flex-column align-items-center text-decoration-none px-3 py-1 rounded-3`
-            }
+            onClick={(e) => {
+              e.preventDefault();
+              handleNav(t.to);
+            }}
+            className="d-flex flex-column align-items-center text-decoration-none px-3 py-1 rounded-3"
             style={({ isActive }) => ({
               fontSize: "0.7rem",
               color: isActive ? "#f7f7f7ff" : "#97a1b5",
@@ -46,20 +56,12 @@ export default function Navbar() {
                 : "none",
             })}
           >
-            <div
-              style={{
-                fontSize: "1.25rem",
-                marginBottom: 2,
-                transform: "translateY(-1px)",
-              }}
-            >
-              {t.icon}
-            </div>
+            <div style={{ fontSize: "1.25rem", marginBottom: 2 }}>{t.icon}</div>
             <span>{t.label}</span>
           </NavLink>
         ))}
       </nav>
-      {/* spacer – pushes content up by exact bar height */}
+
       <div style={{ paddingBottom: 60, marginTop: 10 }} />
     </>
   );

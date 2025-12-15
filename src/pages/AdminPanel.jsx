@@ -31,6 +31,9 @@ export default function AdminPanel() {
   const [pickedTime, setPickedTime] = useState("");
   const [computedDays, setComputedDays] = useState(0);
   const [computedTargetISO, setComputedTargetISO] = useState(null);
+  const [showDevice, setShowDevice] = useState(false);
+  const [deviceTarget, setDeviceTarget] = useState(null);
+  const [newLimit, setNewLimit] = useState(3);
 
   /* ---------- data ---------- */
   const load = async () => {
@@ -155,6 +158,29 @@ export default function AdminPanel() {
     load();
   };
 
+  // Device increase/decrease modal
+  const openDeviceModal = (u) => {
+    setDeviceTarget(u);
+    setNewLimit(u.device_limit ?? 3);
+    setShowDevice(true);
+  };
+
+  const confirmDeviceLimit = async () => {
+    if (!deviceTarget) return;
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ device_limit: newLimit })
+        .eq("id", deviceTarget.id);
+      if (error) throw error;
+      toast.success("Device limit updated");
+      await load();
+      setShowDevice(false);
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
   if (!isAdmin)
     return <p className="p-4 text-center text-muted">Access denied.</p>;
 
@@ -207,7 +233,7 @@ export default function AdminPanel() {
 
       <GlassCard>
         <Row className="g-2 align-items-center">
-          <Col md={8}>
+          <Col xs={12} md={8}>
             <Form.Control
               placeholder="Search by email..."
               value={search}
@@ -215,7 +241,7 @@ export default function AdminPanel() {
               className="rounded-pill"
             />
           </Col>
-          <Col md={4} className="d-flex gap-2">
+          <Col xs={12} md={4} className="d-flex gap-2 justify-content-start">
             <Badge bg="secondary">{users.length} users</Badge>
             <Badge bg="success">{premiumUsers.length} premium</Badge>
             <Badge bg="secondary">{freeUsers.length} free</Badge>
@@ -233,6 +259,7 @@ export default function AdminPanel() {
             onExtend={openExtendModal}
             onDemote={demoteUser}
             onDelete={deleteUser}
+            onDevice={openDeviceModal}
           />
 
           <h4 className="fw-semibold mb-3 mt-5">Free Users</h4>
@@ -316,63 +343,103 @@ export default function AdminPanel() {
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer position="bottom-center" />
+      {/* Device-limit modal */}
+      <Modal show={showDevice} onHide={() => setShowDevice(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Device Limit</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {deviceTarget && (
+            <>
+              <p className="mb-2">
+                <strong>User:</strong> {deviceTarget.email}
+              </p>
+              <Form.Label>Maximum devices</Form.Label>
+              <Form.Control
+                type="number"
+                min="1"
+                max="10"
+                value={newLimit}
+                onChange={(e) => setNewLimit(Number(e.target.value))}
+              />
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowDevice(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" onClick={confirmDeviceLimit}>
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
 
 /* ---------- reusable table ---------- */
-function UserTable({ users, onExtend, onDemote, onDelete }) {
+function UserTable({ users, onExtend, onDemote, onDelete, onDevice }) {
   if (users.length === 0)
     return <Card className="border-0 shadow-sm text-center p-4">No users</Card>;
 
   return (
     <div className="table-responsive">
-      <Header />
-      <Navbar />
       <table className="table table-hover align-middle mb-0">
         <thead className="table-light">
           <tr>
             <th>Name</th>
-            <th>Email</th>
+            <th className="d-none d-md-table-cell">Email</th>
             <th>Tier</th>
-            <th>Expires</th>
+            <th className="d-none d-md-table-cell">Expires</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {users.map((u) => (
             <tr key={u.id}>
-              <td>{u.name}</td>
-              <td>{u.email ?? "-"}</td>
+              <td className="text-truncate" style={{ maxWidth: 120 }}>
+                {u.name}
+              </td>
+              <td className="d-none d-md-table-cell text-truncate">
+                {u.email ?? "-"}
+              </td>
               <td>
                 <Badge
                   bg={u.tier === "premium" ? "warning" : "secondary"}
                   text={u.tier === "premium" ? "dark" : ""}
-                  style={
-                    u.tier === "premium"
-                      ? {
-                          backgroundColor: "#f1cf6bff",
-                          border: "1px solid #dbc276ff",
-                        }
-                      : {}
-                  }
                 >
                   {u.tier}
                 </Badge>
               </td>
-              <td>
+              <td className="d-none d-md-table-cell">
                 {u.tier_expires_at
-                  ? format(parseISO(u.tier_expires_at), "yyyy-MM-dd HH:mm")
+                  ? format(parseISO(u.tier_expires_at), "yyyy-MM-dd")
                   : "-"}
               </td>
               <td>
-                <ButtonGroup size="sm">
-                  <Button variant="outline-primary" onClick={() => onExtend(u)}>
+                <div className="d-flex flex-wrap gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline-primary"
+                    onClick={() => onExtend(u)}
+                  >
                     Extend
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline-info"
+                    onClick={() => onDevice(u)}
+                  >
+                    Devices
                   </Button>
                   {u.tier === "premium" && (
                     <Button
+                      size="sm"
                       variant="outline-secondary"
                       onClick={() => onDemote(u.id)}
                     >
@@ -380,12 +447,13 @@ function UserTable({ users, onExtend, onDemote, onDelete }) {
                     </Button>
                   )}
                   <Button
+                    size="sm"
                     variant="outline-danger"
                     onClick={() => onDelete(u.id)}
                   >
                     Delete
                   </Button>
-                </ButtonGroup>
+                </div>
               </td>
             </tr>
           ))}

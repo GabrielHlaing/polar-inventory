@@ -6,11 +6,9 @@ import { Card, Badge, Button, Form, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import useUpToHome from "../hooks/useUpToHome";
+import { Link } from "react-router-dom";
 
 export default function Profile() {
-  useUpToHome();
-
   const { profile, premiumExpiresAt, isAdmin } = useProfile();
   const { logout } = useAuth();
 
@@ -110,8 +108,19 @@ export default function Profile() {
           </div>
           <div className="small mb-1">Email: {profile.email}</div>
           <div className="small">
-            Expires:{" "}
-            {premiumExpiresAt ? premiumExpiresAt.toLocaleDateString() : "—"}
+            Expires at:{" "}
+            <span className="fw-bold">
+              {premiumExpiresAt
+                ? premiumExpiresAt.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : "—"}
+            </span>
           </div>
         </PremiumCard>
       ) : (

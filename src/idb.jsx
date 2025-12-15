@@ -1,5 +1,5 @@
 // src/idb.js
-const DB_NAME = "hy-inventory-db";
+const DB_NAME = "polar-inventory-db";
 const DB_VERSION = 5;
 
 const STORE_NAMES = {

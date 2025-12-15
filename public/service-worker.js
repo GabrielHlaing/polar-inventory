@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* public/service-worker.js */
 
-const SW_VERSION = "v1::hy-inventory";
+const SW_VERSION = "v1::polar-inventory";
 const PRECACHE = `${SW_VERSION}:precache`;
 const RUNTIME = `${SW_VERSION}:runtime`;
 

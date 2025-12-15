@@ -7,11 +7,8 @@ import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import { useProfile } from "../contexts/ProfileContext";
 import Header from "../components/Header";
-import useUpToHome from "../hooks/useUpToHome";
 
 export default function Inventory() {
-  useUpToHome();
-
   const navigate = useNavigate();
   const { items, loading, addItem } = useItems();
   const { addToCart, totalCount } = useCart();

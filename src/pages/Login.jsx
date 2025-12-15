@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,25 +9,30 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await login(email, password); // ← from context
+      toast.success("Welcome back!");
+      navigate("/", { replace: true });
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
-    toast.success("Welcome back!");
-    navigate("/", { replace: true });
   }
+
+  useEffect(() => {
+    const reason = localStorage.getItem("forced_logout_reason");
+
+    if (reason) {
+      toast.info(reason);
+      localStorage.removeItem("forced_logout_reason");
+    }
+  }, []);
 
   return (
     <div

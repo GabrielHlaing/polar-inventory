@@ -10,6 +10,7 @@ import {
   Row,
   Col,
   Badge,
+  Modal,
 } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
@@ -41,6 +42,8 @@ export default function CartPage() {
     address: "",
   });
   const [processing, setProcessing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmResolver, setConfirmResolver] = useState(null);
 
   useEffect(() => setCartState(cart), [cart]);
 
@@ -61,6 +64,12 @@ export default function CartPage() {
         };
       })
     );
+
+  const askConfirm = (message) =>
+    new Promise((res) => {
+      setConfirmResolver(() => res); // store the resolve fn
+      setShowConfirm(true);
+    });
 
   const updateCustomer = (f, v) => setCustomer((p) => ({ ...p, [f]: v }));
 
@@ -85,9 +94,8 @@ export default function CartPage() {
     if (cartExceedsStock())
       return toast.error("One or more items exceed available stock.");
 
-    const confirmed = await new Promise((res) =>
-      window.confirm(`Total: ${total} Ks. Proceed?`) ? res(true) : res(false)
-    );
+    const confirmed = await askConfirm();
+
     if (!confirmed) return;
 
     setProcessing(true);
@@ -561,6 +569,38 @@ export default function CartPage() {
           Checkout is only available for premium users.
         </div>
       )}
+
+      {/* Confirm checkout modal */}
+      <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm checkout</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Total: <strong>{total.toFixed(2)} Ks</strong>. Proceed?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              confirmResolver(false);
+              setShowConfirm(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={() => {
+              confirmResolver(true);
+              setShowConfirm(false);
+            }}
+          >
+            OK
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
