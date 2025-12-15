@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [logging, setLogging] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, loading, login } = useAuth();
 
   async function handleLogin(e) {
     e.preventDefault();
-    setLoading(true);
+    setLogging(true);
     try {
       await login(email, password); // ← from context
       toast.success("Welcome back!");
-      navigate("/", { replace: true });
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setLoading(false);
+      setLogging(false);
     }
   }
 
@@ -33,6 +32,9 @@ export default function Login() {
       localStorage.removeItem("forced_logout_reason");
     }
   }, []);
+
+  if (loading) return null;
+  if (user) return <Navigate to="/" replace />;
 
   return (
     <div
@@ -138,9 +140,9 @@ export default function Login() {
                 fontSize: 15,
                 border: "none",
               }}
-              disabled={loading}
+              disabled={logging}
             >
-              {loading ? (
+              {logging ? (
                 <>
                   <span className="spinner-border spinner-border-sm me-2" />
                   Logging in…

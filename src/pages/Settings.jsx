@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import { supabase } from "../supabaseClient";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import useUpToHome from "../hooks/useUpToHome";
 
 /* 8 premium preset colours */
 const PRESET_COLORS = [
@@ -51,7 +50,6 @@ const FONT_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-  useUpToHome();
   const { profile, updateSettings, loading, isPremium, premiumExpiresAt } =
     useProfile();
 
