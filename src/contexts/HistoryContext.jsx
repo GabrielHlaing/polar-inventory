@@ -16,56 +16,97 @@ export function HistoryProvider({ children }) {
   const fetchInvoicesByMonth = async (year, month) => {
     const key = `${year}-${String(month).padStart(2, "0")}`;
 
-    //
-    // 1️⃣ If offline → load from IndexedDB
-    //
+    // --------------------------------------------
+    // 1️⃣ If offline → load from IndexedDB only
+    // --------------------------------------------
     if (!navigator.onLine) {
       const cached = await idbGet(STORE_NAMES.HISTORY_CACHE, key);
+
+      setHistoryCache((prev) => ({
+        ...prev,
+        [key]: {
+          invoices: cached?.invoices || [],
+          loading: false,
+          fetched: true,
+        },
+      }));
+
       return cached?.invoices || [];
     }
 
-    //
-    // 2️⃣ If already loaded in memory → return instantly
-    //
-    if (historyCache[key]?.fetched) {
+    // --------------------------------------------
+    // 2️⃣ If already fetching → do nothing
+    // --------------------------------------------
+    if (historyCache[key]?.loading) {
       return historyCache[key].invoices;
     }
 
-    //
-    // 3️⃣ Online fetch from Supabase
-    //
+    // --------------------------------------------
+    // 3️⃣ Mark as loading (do NOT mark fetched yet)
+    // --------------------------------------------
+    setHistoryCache((prev) => ({
+      ...prev,
+      [key]: {
+        invoices: prev[key]?.invoices || [],
+        loading: true,
+        fetched: false,
+      },
+    }));
+
+    // --------------------------------------------
+    // 4️⃣ Build date range
+    // --------------------------------------------
     const monthStart = `${key}-01`;
     const nextMonth =
       month === 12
         ? `${year + 1}-01-01`
         : `${year}-${String(month + 1).padStart(2, "0")}-01`;
 
+    // --------------------------------------------
+    // 5️⃣ Fetch from Supabase
+    // --------------------------------------------
     const { data, error } = await supabase
       .from("invoices")
       .select("*, history(*)")
       .gte("created_at", monthStart)
       .lt("created_at", nextMonth);
 
-    if (error) throw error;
+    if (error) {
+      setHistoryCache((prev) => ({
+        ...prev,
+        [key]: {
+          invoices: prev[key]?.invoices || [],
+          loading: false,
+          fetched: false,
+        },
+      }));
+      throw error;
+    }
 
-    //
-    // 4️⃣ Save to RAM cache
-    //
-    const updatedCache = {
-      ...historyCache,
-      [key]: { invoices: data, fetched: true },
-    };
-    setHistoryCache(updatedCache);
+    // --------------------------------------------
+    // 6️⃣ Save to RAM cache
+    // --------------------------------------------
+    setHistoryCache((prev) => ({
+      ...prev,
+      [key]: {
+        invoices: data,
+        loading: false,
+        fetched: true,
+      },
+    }));
 
-    //
-    // 5️⃣ Save to IndexedDB (offline support)
-    //
-    await idbPut(STORE_NAMES.HISTORY_CACHE, { month: key, invoices: data });
+    // --------------------------------------------
+    // 7️⃣ Save to IndexedDB
+    // --------------------------------------------
+    await idbPut(STORE_NAMES.HISTORY_CACHE, {
+      month: key,
+      invoices: data,
+    });
 
-    //
-    // 6️⃣ Keep ONLY this month in IDB (prevent growth)
-    //
-    for (const k of Object.keys(updatedCache)) {
+    // --------------------------------------------
+    // 8️⃣ Keep ONLY this month in IndexedDB
+    // --------------------------------------------
+    for (const k of Object.keys(historyCache)) {
       if (k !== key) {
         await idbDelete(STORE_NAMES.HISTORY_CACHE, k);
       }

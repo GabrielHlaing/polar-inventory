@@ -3,7 +3,7 @@ import { useHistoryData } from "../contexts/HistoryContext";
 import getMonthlySummary from "../components/summary";
 import InvoiceCard from "../components/InvoiceCard";
 import { useItems } from "../contexts/ItemsContext";
-import { Form, Button, Card, Placeholder, Badge } from "react-bootstrap";
+import { Form, Button, Card, Badge } from "react-bootstrap";
 import { toast } from "react-toastify";
 import FabBack from "../components/FabBack";
 
@@ -33,7 +33,7 @@ export default function History() {
 
   useEffect(() => {
     fetchInvoicesByMonth(year, month);
-  }, [year, month]);
+  }, []);
 
   /* ---------- handlers with toast & guard ---------- */
   const handleDelete = async (id) => {
@@ -52,15 +52,66 @@ export default function History() {
     setProcessing(false);
   };
 
-  /* ---------- skeleton loader ---------- */
-  const SkeletonCard = () => (
-    <Card className="mb-3 shadow-sm">
-      <Card.Body>
-        <Placeholder animation="glow">
-          <Placeholder xs={7} /> <Placeholder xs={4} /> <Placeholder xs={3} />
-        </Placeholder>
-      </Card.Body>
-    </Card>
+  /* ---------- History Skeleton Loaders ---------- */
+  const SkeletonHistory = () => (
+    <div className="d-flex flex-column gap-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="card shadow-sm border-0 p-3">
+          <div className="d-flex justify-content-between align-items-start mb-1">
+            <div>
+              <SkeletonBox w={110} h={18} className="mb-1" />
+              <SkeletonBox w={70} h={12} />
+            </div>
+            <div className="text-end">
+              <SkeletonBox w={60} h={14} className="mb-1" />
+              <SkeletonBox w={80} h={18} />
+            </div>
+          </div>
+
+          <SkeletonBox w="60%" h={16} className="mb-1" />
+          <SkeletonBox w="40%" h={16} />
+        </div>
+      ))}
+    </div>
+  );
+
+  const SkeletonControls = () => (
+    <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+      <SkeletonBox w={160} h={38} round />
+      <SkeletonBox w={100} h={38} round />
+      <SkeletonBox w={60} h={24} round className="ms-auto" />
+    </div>
+  );
+
+  /* ---------- atomic shapes ---------- */
+  const SkeletonBox = ({ w, h = 16, round = false, className = "" }) => (
+    <div
+      className={`placeholder ${className}`}
+      style={{
+        width: typeof w === "number" ? `${w}px` : w,
+        height: `${h}px`,
+        borderRadius: round ? 50 : 6,
+        background:
+          "linear-gradient(90deg, #e0eafc 0%, #cfdef3 50%, #e0eafc 100%)",
+        backgroundSize: "200% 100%",
+        animation: "placeholder-glow 1.5s ease-in-out infinite",
+      }}
+    />
+  );
+
+  const SkeletonBtn = ({ sm = false }) => (
+    <div
+      className="placeholder"
+      style={{
+        width: sm ? 52 : 80,
+        height: sm ? 26 : 34,
+        borderRadius: 6,
+        background:
+          "linear-gradient(90deg, #c2d6ff 0%, #a8c4ff 50%, #c2d6ff 100%)",
+        backgroundSize: "200% 100%",
+        animation: "placeholder-glow 1.5s ease-in-out infinite",
+      }}
+    />
   );
 
   /* ---------- month selector ---------- */
@@ -100,11 +151,6 @@ export default function History() {
           key={f}
           size="sm"
           variant={typeFilter === f ? "primary" : "outline-primary"}
-          style={
-            typeFilter === f
-              ? { backgroundColor: "#72b3f7", borderColor: "#72b3f7" }
-              : {}
-          }
           onClick={() => setTypeFilter(f)}
         >
           {f === "all" ? "All" : f === "sale" ? "Sales" : "Purchases"}
@@ -170,19 +216,19 @@ export default function History() {
       <FilterPills />
       <SummaryCards />
 
+      {historyCache[key]?.loading && (
+        <>
+          <SkeletonControls />
+          <SkeletonHistory />
+        </>
+      )}
+
       {filteredInvoices.length === 0 && !historyCache[key]?.loading && (
         <Card className="shadow-sm border-0">
           <Card.Body className="text-center text-muted">
             No invoices for this period.
           </Card.Body>
         </Card>
-      )}
-
-      {historyCache[key]?.loading && (
-        <>
-          <SkeletonCard />
-          <SkeletonCard />
-        </>
       )}
 
       <div className="d-flex flex-column gap-3">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Modal, Button, Form, Placeholder } from "react-bootstrap";
+import { Modal, Button, Form, Card } from "react-bootstrap";
 import { useItems } from "../contexts/ItemsContext";
 import { useCart } from "../contexts/CartContext";
 import { toast } from "react-toastify";
@@ -85,15 +85,100 @@ export default function Inventory() {
     setShowModal(false);
   };
 
-  /* ---------- skeleton loader ---------- */
-  const SkeletonCard = () => (
-    <div className="col-12">
-      <div className="card shadow-sm p-3">
-        <Placeholder animation="glow">
-          <Placeholder xs={4} />
-        </Placeholder>
-      </div>
+  /* ---------- Inventory Skeleton Loaders ---------- */
+  const SkeletonTable = () => (
+    <Card className="border-0 shadow-sm mb-3">
+      <Card.Body className="p-0">
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-light">
+              <tr>
+                <th style={{ width: 60 }}>
+                  <SkeletonBox w={40} />
+                </th>
+                <th>
+                  <SkeletonBox w={120} />
+                </th>
+                <th style={{ width: 100 }}>
+                  <SkeletonBox w={60} />
+                </th>
+                <th style={{ width: 110 }}>
+                  <SkeletonBox w={28} />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  <td>
+                    <SkeletonBox w={24} />
+                  </td>
+                  <td>
+                    <SkeletonBox w="80%" />
+                  </td>
+                  <td>
+                    <SkeletonBox w={50} />
+                  </td>
+                  <td className="text-center">
+                    <SkeletonBtn />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+
+  const SkeletonCards = () => (
+    <div className="row g-2">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="col-12">
+          <Card className="shadow-sm border-0 p-3">
+            <div className="d-flex align-items-center gap-3">
+              <SkeletonBox w={60} h={60} round />
+              <div className="flex-grow-1">
+                <SkeletonBox w="70%" />
+                <SkeletonBox w={40} className="mt-2" />
+              </div>
+              <SkeletonBtn />
+            </div>
+          </Card>
+        </div>
+      ))}
     </div>
+  );
+
+  /* ---------- atomic shapes ---------- */
+  const SkeletonBox = ({ w, h = 24, round = false, className = "" }) => (
+    <div
+      className={`placeholder ${className}`}
+      style={{
+        width: typeof w === "number" ? `${w}px` : w,
+        height: `${h}px`,
+        borderRadius: round ? "50%" : 6,
+        background:
+          "linear-gradient(90deg, #e0eafc 0%, #cfdef3 50%, #e0eafc 100%)",
+        backgroundSize: "200% 100%",
+        animation: "placeholder-glow 1.5s ease-in-out infinite",
+      }}
+    />
+  );
+
+  const SkeletonBtn = () => (
+    <div
+      className="placeholder"
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        background:
+          "linear-gradient(90deg, #c2d6ff 0%, #a8c4ff 50%, #c2d6ff 100%)",
+        backgroundSize: "200% 100%",
+        animation: "placeholder-glow 1.5s ease-in-out infinite",
+      }}
+    />
   );
 
   return (
@@ -155,12 +240,15 @@ export default function Inventory() {
         </select>
       </div>
 
-      {/* loader */}
       {loading && (
-        <div className="row g-2">
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+        <>
+          <div className="d-none d-md-block">
+            <SkeletonTable />
+          </div>
+          <div className="d-md-none">
+            <SkeletonCards />
+          </div>
+        </>
       )}
 
       {!loading && items.length === 0 && (
@@ -267,18 +355,34 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* floating cart badge */}
+      {/* Floating cart button */}
       {totalCount > 0 && (
         <button
-          className="btn btn-primary position-fixed shadow-lg"
           onClick={() => navigate("/cart")}
+          aria-label="Open cart"
           style={{
-            bottom: 80,
-            right: 50,
-            borderRadius: 999,
-            padding: "12px 20px",
-            fontWeight: 600,
+            position: "fixed",
+            bottom: 88, // clears navbar + thumb reach
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            border: "none",
+            background: "linear-gradient(135deg, #133a7fff 0%, #319ea2ff 100%)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1rem",
+            boxShadow:
+              "0 10px 25px rgba(47, 111, 237, 0.45), inset 0 1px 2px rgba(255,255,255,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1051,
+            transition: "transform .15s ease, box-shadow .15s ease",
           }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           {totalCount}
         </button>

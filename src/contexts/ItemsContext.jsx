@@ -18,9 +18,11 @@ export function ItemsProvider({ children }) {
 
   /* ----------  alphabetical helper  ---------- */
   const sortAlpha = (arr) =>
-    [...arr].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-    );
+    [...arr]
+      .filter((i) => typeof i.name === "string")
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+      );
 
   // -------------------------
   // LOAD ITEMS
@@ -28,8 +30,18 @@ export function ItemsProvider({ children }) {
   async function loadItems() {
     setLoading(true);
 
-    const cached = await idbGetAll(STORE_NAMES.INVENTORY);
-    setItems(sortAlpha(cached));
+    const local = await idbGetAll(STORE_NAMES.INVENTORY);
+
+    const clean = local.filter((i) => typeof i.name === "string" && i.id);
+
+    // permanently fix corrupted cache
+    if (clean.length !== local.length) {
+      await idbClear(STORE_NAMES.INVENTORY);
+      for (const item of clean) {
+        await idbPut(STORE_NAMES.INVENTORY, item);
+      }
+    }
+    setItems(sortAlpha(clean));
 
     if (navigator.onLine) {
       const { data, error } = await supabase
@@ -110,41 +122,32 @@ export function ItemsProvider({ children }) {
   // -------------------------
   // UPDATE ITEM
   // -------------------------
-  async function updateItem(id, payload) {
-    const updated = { id, ...payload };
+  async function updateItem(id, changes) {
+    const existing = items.find((i) => i.id === id);
+    if (!existing) return;
 
+    const updated = {
+      ...existing, // ✅ KEEP name, category, etc.
+      ...changes, // ✅ Apply qty / prices
+      updated_at: new Date().toISOString(),
+    };
+
+    // Save to IndexedDB
     await idbPut(STORE_NAMES.INVENTORY, updated);
-    setItems((p) => sortAlpha(p.map((i) => (i.id === id ? updated : i))));
 
+    // Update state
+    setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
+
+    // Queue sync if offline
     if (!navigator.onLine) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
         queueId: crypto.randomUUID(),
         type: "update",
-        created_at: Date.now(),
         itemId: id,
-        payload,
-      });
-      return { data: updated };
-    }
-
-    const { error } = await supabase
-      .from("inventory")
-      .update(payload)
-      .eq("id", id);
-
-    if (error) {
-      await idbPut(STORE_NAMES.SYNC_QUEUE, {
-        queueId: crypto.randomUUID(),
-        type: "update",
+        payload: changes, // server only needs partial
         created_at: Date.now(),
-        itemId: id,
-        payload,
       });
-    } else {
-      await loadItems();
     }
-
-    return { data: updated };
   }
 
   // -------------------------

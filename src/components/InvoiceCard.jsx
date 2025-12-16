@@ -128,7 +128,7 @@ export default function InvoiceCard({
 
   return (
     <>
-      <Card className="mb-2 shadow-sm border-0">
+      <Card className="mb-1 shadow-sm border-0">
         {/* ---------- HEADER ---------- */}
         <Card.Header
           className="d-flex justify-content-between align-items-center py-3"

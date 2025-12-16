@@ -67,14 +67,131 @@ export default function PrintInvoice() {
     toast.success("Receipt saved to gallery");
   };
 
+  /* ---------- atomic shapes ---------- */
+  const SkeletonBox = ({ w, h = 24, round = false, className = "" }) => (
+    <div
+      className={`placeholder ${className}`}
+      style={{
+        width: typeof w === "number" ? `${w}px` : w,
+        height: `${h}px`,
+        borderRadius: round ? "50%" : 6,
+        background:
+          "linear-gradient(90deg, #e0eafc 0%, #cfdef3 50%, #e0eafc 100%)",
+        backgroundSize: "200% 100%",
+        animation: "placeholder-glow 1.5s ease-in-out infinite",
+      }}
+    />
+  );
+
+  /* ---------- Thermal-Paper Skeleton ---------- */
+  const ThermalSkeleton = () => (
+    <Card
+      className="border-0 shadow-sm"
+      style={{ borderRadius: 16, overflow: "hidden" }}
+    >
+      {/* Header strip */}
+      <div
+        className="p-3"
+        style={{
+          background: "linear-gradient(135deg,#e0eafc 0%,#cfdef3 100%)",
+        }}
+      >
+        <div className="d-flex align-items-center gap-3">
+          <SkeletonBox round w={52} h={52} />
+          <div className="flex-grow-1">
+            <SkeletonBox w={120} h={20} className="mb-2" />
+            <SkeletonBox w={80} h={14} />
+          </div>
+        </div>
+      </div>
+
+      <Card.Body className="p-4">
+        {/* Meta row */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <SkeletonBox w={100} h={18} />
+          <SkeletonBox w={60} h={18} round />
+        </div>
+
+        {/* Customer block */}
+        <div className="mb-3">
+          <SkeletonBox w={60} h={14} className="mb-2" />
+          <SkeletonBox w="70%" h={14} className="mb-1" />
+          <SkeletonBox w={90} h={14} />
+        </div>
+
+        {/* Item rows (thermal line style) */}
+        <div className="mb-3">
+          <div
+            className="d-flex fw-semibold small pb-1 mb-1"
+            style={{ background: "#f2f6fc", borderRadius: 6, padding: "4px" }}
+          >
+            <span className="flex-fill">
+              <SkeletonBox w={40} h={12} />
+            </span>
+            <span className="text-center" style={{ width: 48 }}>
+              <SkeletonBox w={20} h={12} />
+            </span>
+          </div>
+
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="d-flex small py-2 border-bottom">
+              <span className="flex-fill">
+                <SkeletonBox w="60%" h={14} />
+              </span>
+              <span className="text-center" style={{ width: 48 }}>
+                <SkeletonBox w={20} h={14} />
+              </span>
+              <span className="text-end" style={{ width: 72 }}>
+                <SkeletonBox w={30} h={14} />
+              </span>
+              <span className="text-end" style={{ width: 80 }}>
+                <SkeletonBox w={34} h={14} />
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Total bar */}
+        <div
+          className="d-flex justify-content-between align-items-center fw-bold pt-2 mb-3"
+          style={{ borderTop: "2px solid #dee2e6" }}
+        >
+          <SkeletonBox w={40} h={18} />
+          <SkeletonBox w={80} h={20} />
+        </div>
+
+        {/* Footer */}
+        <div
+          className="text-center small pt-2"
+          style={{ borderTop: "1px dashed #dee2e6" }}
+        >
+          <SkeletonBox w="80%" h={12} />
+        </div>
+      </Card.Body>
+    </Card>
+  );
+
   if (loading)
     return (
-      <div className="p-4">
-        <Placeholder animation="glow">
-          <Placeholder xs={7} /> <Placeholder xs={4} /> <Placeholder xs={3} />
-        </Placeholder>
+      <div
+        className="py-3 px-0 pt-5"
+        style={{ background: "#D3D3D3", minHeight: "100vh" }}
+      >
+        <FabBack />
+        <h1 className="fw-bold mb-4 text-center">Preview Invoice</h1>
+
+        {/* Receipt-shaped skeleton */}
+        <div className="d-flex flex-column align-items-center">
+          <div
+            className="mx-auto"
+            style={{ width: 380, maxWidth: "100%", overflowX: "auto" }}
+          >
+            <ThermalSkeleton />
+          </div>
+        </div>
       </div>
     );
+
   if (!invoice) return <p className="p-4 text-muted">Invoice not found.</p>;
 
   const items = invoice.history || [];
