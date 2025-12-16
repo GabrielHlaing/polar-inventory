@@ -72,7 +72,14 @@ export default function Receipt({ shop, invoice }) {
           <div>
             <div className="fw-semibold">Invoice #{invoice.invoice_number}</div>
             <small className="text-muted">
-              {new Date(invoice.created_at).toLocaleDateString()}
+              {new Date(invoice.created_at).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </small>
           </div>
           <Badge pill bg={invoice.type === "purchase" ? "primary" : "success"}>

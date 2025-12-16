@@ -75,21 +75,18 @@ export default function Login() {
           >
             Polar Inventory
           </h2>
-          <p className="text-muted small">
-            Manage inventory with clarity and confidence
-          </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleLogin} noValidate>
           <div className="mb-3">
             <label className="form-label small fw-medium text-secondary">
-              Email address
+              Email
             </label>
             <input
               type="email"
               className="form-control"
-              placeholder="you@example.com"
+              placeholder="someone@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{

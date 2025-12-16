@@ -19,7 +19,7 @@ export default function Signup() {
 
     try {
       await signup(email, password, name);
-      toast.success("Account created! Please log in.");
+      toast.success("Account created!");
       navigate("/login", { replace: true });
     } catch (err) {
       toast.error(err.message);
@@ -65,10 +65,10 @@ export default function Signup() {
               letterSpacing: "0.3px",
             }}
           >
-            Create your account
+            Polar Inventory
           </h2>
           <p className="text-muted small">
-            Manage inventory with clarity and confidence
+            <i>Create an account to enjoy 7-day trial!</i>
           </p>
         </div>
 
@@ -76,12 +76,12 @@ export default function Signup() {
         <form onSubmit={handleSignup} noValidate>
           <div className="mb-3">
             <label className="form-label small fw-medium text-secondary">
-              Full name
+              Username
             </label>
             <input
               type="text"
               className="form-control"
-              placeholder="Jane Doe"
+              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={{
@@ -94,12 +94,12 @@ export default function Signup() {
 
           <div className="mb-3">
             <label className="form-label small fw-medium text-secondary">
-              Email address
+              Email
             </label>
             <input
               type="email"
               className="form-control"
-              placeholder="you@example.com"
+              placeholder="someone@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{
@@ -118,7 +118,7 @@ export default function Signup() {
               <input
                 type={showPwd ? "text" : "password"}
                 className="form-control"
-                placeholder="Minimum 8 characters"
+                placeholder="Create your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{

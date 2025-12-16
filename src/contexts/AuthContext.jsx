@@ -46,6 +46,21 @@ export function AuthProvider({ children }) {
       },
     });
     if (error) throw error;
+
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7);
+
+    const { error: profError } = await supabase
+      .from("profiles")
+      .update({
+        name,
+        email,
+        tier: "premium",
+        tier_expires_at: expires.toISOString(),
+      })
+      .eq("id", data.user.id);
+
+    if (profError) throw profError;
     return data;
   };
 

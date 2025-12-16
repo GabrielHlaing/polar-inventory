@@ -149,13 +149,25 @@ export default function AdminPanel() {
   };
 
   const deleteUser = async (id) => {
-    const confirmed = await new Promise((res) =>
-      window.confirm("Delete this user permanently?") ? res(true) : res(false)
+    const confirmed = window.confirm(
+      "Delete this user permanently?\n\nThis will remove:\n• Account\n• Inventory\n• History\n• Devices\n\nThis action cannot be undone."
     );
+
     if (!confirmed) return;
-    await supabase.from("profiles").delete().eq("id", id);
-    toast.info("User deleted");
-    load();
+
+    try {
+      const { error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: id },
+      });
+
+      if (error) throw error;
+
+      toast.success("User deleted permanently");
+      await load();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete user");
+    }
   };
 
   // Device increase/decrease modal
