@@ -412,10 +412,10 @@ export default function SettingsPage() {
         </Button>
         <InvoicePreviewModal
           shop={{
-            name: form.shop_name,
-            address: form.address,
-            phone: form.phone,
-            email: form.email,
+            name: form.shop_name || "My Shop",
+            address: form.address || "The City",
+            phone: form.phone || "09xxxxxxxxx",
+            email: form.email || "sample@email.com",
             logo: form.logo_url,
             color: form.theme_color,
             font: form.invoice_font,

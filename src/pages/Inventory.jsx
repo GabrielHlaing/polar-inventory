@@ -12,7 +12,10 @@ export default function Inventory() {
   const navigate = useNavigate();
   const { items, loading, addItem } = useItems();
   const { addToCart, totalCount } = useCart();
-  const { profile } = useProfile();
+  const { profile, expWarningDays, updateExpWarningDays } = useProfile();
+
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customDays, setCustomDays] = useState("");
 
   /* ---------- search ---------- */
   const [search, setSearch] = useState("");
@@ -33,6 +36,17 @@ export default function Inventory() {
           .toLowerCase()
           .replace(/[^a-z0-9]/gi, "")
       : "";
+
+  function getExpColor(exp) {
+    if (!exp) return "text-dark";
+
+    const expDate = new Date(exp);
+    const diff = expDate - new Date();
+    const daysLeft = diff / (1000 * 60 * 60 * 24);
+
+    if (daysLeft <= expWarningDays) return "text-danger";
+    return "text-dark";
+  }
 
   const filteredItems = (items ?? [])
     .filter((i) => i?.name)
@@ -109,7 +123,7 @@ export default function Inventory() {
       </div>
 
       {/* search */}
-      <div className="mb-3">
+      <div className="d-flex gap-2 mb-3">
         <input
           type="text"
           className="form-control form-control-sm shadow-sm"
@@ -117,6 +131,28 @@ export default function Inventory() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <select
+          className="form-select"
+          style={{ maxWidth: "150px" }}
+          value={
+            [0, 7, 30, 90].includes(expWarningDays)
+              ? String(expWarningDays)
+              : "custom"
+          }
+          onChange={(e) => {
+            if (e.target.value === "custom") {
+              setShowCustomModal(true);
+            } else {
+              updateExpWarningDays(Number(e.target.value));
+            }
+          }}
+        >
+          <option value="">Warn exp in…</option>
+          <option value="7">7 days</option>
+          <option value="30">1 month</option>
+          <option value="90">3 months</option>
+          <option value="custom">Custom…</option>
+        </select>
       </div>
 
       {/* loader */}
@@ -155,7 +191,7 @@ export default function Inventory() {
                     onClick={() => navigate(`/inventory/${it.id}`)}
                   >
                     <td>{idx + 1}</td>
-                    <td>{it.name}</td>
+                    <td className={getExpColor(it.exp_date)}>{it.name}</td>
                     <td>
                       <span>{it.qty}</span>
                     </td>
@@ -181,6 +217,7 @@ export default function Inventory() {
         </div>
       )}
 
+      {/* Mobile view*/}
       {!loading && filteredItems.length > 0 && (
         <div className="row g-2 d-md-none">
           {filteredItems.map((it, idx) => (
@@ -200,8 +237,10 @@ export default function Inventory() {
                     columnGap: "15px",
                   }}
                 >
-                  <span className="fw-semibold text-truncate">
-                    {idx + 1}. {it.name}
+                  <span className="fw-semibold text-truncate ">
+                    <span className={getExpColor(it.exp_date)}>
+                      {idx + 1}. {it.name}
+                    </span>
                   </span>
 
                   <span
@@ -324,6 +363,44 @@ export default function Inventory() {
             ) : (
               "Save"
             )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Custom warning date */}
+      <Modal show={showCustomModal} onHide={() => setShowCustomModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Custom Warning Days</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Warn me when expiry is within...</Form.Label>
+            <Form.Control
+              type="number"
+              value={customDays}
+              onChange={(e) => setCustomDays(e.target.value)}
+              placeholder="Enter days"
+            />
+          </Form.Group>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCustomModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              const val = Number(customDays);
+              if (!isNaN(val) && val > 0) {
+                updateExpWarningDays(val);
+                setShowCustomModal(false);
+                setCustomDays("");
+              }
+            }}
+          >
+            Apply
           </Button>
         </Modal.Footer>
       </Modal>

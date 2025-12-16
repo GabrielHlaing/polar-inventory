@@ -168,7 +168,7 @@ export default function Receipt({ shop, invoice }) {
               borderTop: `1px dashed ${tint(shop.color, "33")}`,
             }}
           >
-            {shop.footer}
+            <i>{shop.footer}</i>
           </div>
         )}
       </Card.Body>
