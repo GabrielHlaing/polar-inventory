@@ -53,7 +53,9 @@ export default function SettingsPage() {
   const { profile, updateSettings, loading, isPremium, premiumExpiresAt } =
     useProfile();
 
-  const disabled = !isPremium;
+  const [saving, setSaving] = useState(false);
+
+  const disabled = !isPremium || saving;
 
   const [form, setForm] = useState(() => ({
     shop_name: profile?.settings?.shop_name || "",
@@ -205,9 +207,13 @@ export default function SettingsPage() {
   }
 
   async function save() {
+    if (saving) return;
+    setSaving(true);
+
     if (!isPremium) return toast.warning("Premium required");
     const res = await updateSettings(form);
     if (!res?.error) toast.success("Settings saved!");
+    setSaving(false);
   }
 
   if (loading) return <p className="p-4">Loading settings...</p>;
@@ -408,7 +414,14 @@ export default function SettingsPage() {
           onClick={save}
           disabled={disabled}
         >
-          Save Settings
+          {saving ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" />
+              Saving…
+            </>
+          ) : (
+            "Save settings"
+          )}
         </Button>
         <InvoicePreviewModal
           shop={{
