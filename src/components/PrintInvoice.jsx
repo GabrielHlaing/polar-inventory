@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { supabase } from "../supabaseClient";
 import { useProfile } from "../contexts/ProfileContext";
@@ -15,6 +15,8 @@ export default function PrintInvoice() {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase
@@ -65,6 +67,7 @@ export default function PrintInvoice() {
     link.click();
     setDownloading(false);
     toast.success("Receipt saved to gallery");
+    navigate(-1);
   };
 
   /* ---------- atomic shapes ---------- */

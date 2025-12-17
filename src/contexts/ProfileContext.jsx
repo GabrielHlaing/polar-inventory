@@ -27,8 +27,12 @@ export function ProfileProvider({ children }) {
       .eq("id", user.id)
       .single();
 
-    if (error) {
-      console.error("Profile load error:", error);
+    if (error || !data) {
+      // Session revoked / user deleted / device evicted
+      await supabase.auth.signOut();
+      setProfile(null);
+      setLoading(false);
+      return;
     }
 
     // Auto-demote if premium expired

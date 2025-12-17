@@ -127,27 +127,41 @@ export function ItemsProvider({ children }) {
     if (!existing) return;
 
     const updated = {
-      ...existing, // ✅ KEEP name, category, etc.
-      ...changes, // ✅ Apply qty / prices
+      ...existing,
+      ...changes,
       updated_at: new Date().toISOString(),
     };
 
-    // Save to IndexedDB
     await idbPut(STORE_NAMES.INVENTORY, updated);
-
-    // Update state
     setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
 
-    // Queue sync if offline
     if (!navigator.onLine) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
         queueId: crypto.randomUUID(),
         type: "update",
         itemId: id,
-        payload: changes, // server only needs partial
+        payload: changes,
+        created_at: Date.now(),
+      });
+      return updated;
+    }
+
+    const { error } = await supabase
+      .from("inventory")
+      .update(changes)
+      .eq("id", id);
+
+    if (error) {
+      await idbPut(STORE_NAMES.SYNC_QUEUE, {
+        queueId: crypto.randomUUID(),
+        type: "update",
+        itemId: id,
+        payload: changes,
         created_at: Date.now(),
       });
     }
+
+    return updated;
   }
 
   // -------------------------

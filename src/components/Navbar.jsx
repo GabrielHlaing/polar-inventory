@@ -22,13 +22,7 @@ export default function Navbar() {
   const handleNav = (to) => {
     if (location.pathname === to) return;
 
-    // Home should always be a real history entry
-    if (to === "/") {
-      navigate("/", { replace: false });
-      return;
-    }
-
-    navigate(to, { replace: true });
+    navigate(to);
   };
 
   return (

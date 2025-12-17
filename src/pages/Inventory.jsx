@@ -288,7 +288,6 @@ export default function Inventory() {
                       <button
                         className="btn btn-sm btn-outline-primary"
                         style={{ width: 28, height: 28 }}
-                        disabled={it.qty < 1}
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(it);

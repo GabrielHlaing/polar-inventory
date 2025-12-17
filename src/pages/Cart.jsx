@@ -143,10 +143,12 @@ export default function CartPage() {
     for (const c of cartState) {
       const inv = items.find((i) => i.id === c.id);
       if (!inv) continue;
+      const invQty = Number(inv.qty ?? 0);
+      const cartQty = Math.max(1, Number(c.qty || 1));
+
       const newQty =
-        type === "purchase"
-          ? Number(inv.qty) + Number(c.qty)
-          : Number(inv.qty) - Number(c.qty);
+        type === "purchase" ? invQty + cartQty : Math.max(0, invQty - cartQty);
+
       await updateItem(c.id, {
         qty: newQty,
         purchase_price: c.purchase_price || inv.purchase_price,
@@ -159,7 +161,7 @@ export default function CartPage() {
     updateInvoiceInCache({ ...invoicePayload, history: historyRows });
     clearCart();
     toast.success("Checkout Successful!");
-    navigate("/", { replace: true });
+    navigate(-1);
   };
 
   /* ---------- empty cart ---------- */
@@ -168,10 +170,7 @@ export default function CartPage() {
       <div className="container py-3 text-center">
         <Card className="border-0 shadow-sm d-inline-block px-4 py-5">
           <Card.Body className="text-muted">Your cart is empty.</Card.Body>
-          <Button
-            className="rounded-pill px-4"
-            onClick={() => navigate("/inventory")}
-          >
+          <Button className="rounded-pill px-4" onClick={() => navigate(-1)}>
             Back to Inventory
           </Button>
         </Card>
