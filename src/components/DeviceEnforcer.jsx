@@ -3,15 +3,11 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../contexts/AuthContext";
 import { getDeviceId } from "../utils/getDeviceId";
 import { getDeviceInfo } from "../utils/deviceInfo";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 export default function DeviceEnforcer({ children }) {
   const { user, loading } = useAuth();
   const ranRef = useRef(false);
   const deviceIdRef = useRef(getDeviceId());
-
-  const navigate = useNavigate();
 
   const updateLastSeen = async (userId) => {
     await supabase
@@ -27,7 +23,7 @@ export default function DeviceEnforcer({ children }) {
     const device_id = deviceIdRef.current;
     const { device_name, user_agent } = getDeviceInfo();
 
-    // 1️⃣ Register / upsert
+    // 1️⃣ Register device
     await supabase.from("user_devices").upsert(
       {
         user_id: userId,
@@ -39,19 +35,10 @@ export default function DeviceEnforcer({ children }) {
       { onConflict: "user_id,device_id" }
     );
 
-    // 2️⃣ Enforce limit (server-side)
-    const res = await supabase.functions.invoke("enforce-device-limit", {
-      body: {
-        user_id: userId,
-        device_id: deviceIdRef.current,
-      },
+    // 2️⃣ Enforce limit (authoritative)
+    await supabase.functions.invoke("enforce-device-limit", {
+      body: { user_id: userId },
     });
-
-    if (res.data?.evicted_devices?.includes(deviceIdRef.current)) {
-      await supabase.auth.signOut();
-      toast.warn("This device was logged out due to device limit.");
-      navigate("/login", { replace: true });
-    }
   };
 
   useEffect(() => {
@@ -61,7 +48,6 @@ export default function DeviceEnforcer({ children }) {
     ranRef.current = true;
 
     updateLastSeen(user.id).catch(console.error);
-
     registerAndEnforce(user.id).catch(console.error);
   }, [loading, user?.id]);
 

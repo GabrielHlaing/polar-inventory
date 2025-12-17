@@ -63,15 +63,10 @@ serve(async (req) => {
         toRemove.map((d) => d.id)
       );
 
-    /* 4️⃣ Tell client to log out (only when we actually enforced) */
-
-    return new Response(
-      JSON.stringify({
-        enforced: true,
-        evicted_devices: removedDeviceIds,
-      }),
-      { headers: corsHeaders }
-    );
+    /* GLOBAL LOGOUT – the key */
+    await supabaseAdmin.auth.admin.signOut(user_id, {
+      scope: "global",
+    });
   } catch (err) {
     return new Response(
       JSON.stringify({ error: String(err) }),

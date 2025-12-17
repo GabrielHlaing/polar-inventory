@@ -1,6 +1,7 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
@@ -18,6 +19,11 @@ export function AuthProvider({ children }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       // INITIAL_SESSION fires on reload
       setUser(session?.user ?? null);
+
+      if (event === "SIGNED_OUT") {
+        toast.info("You have been logged out.");
+      }
+
       setLoading(false);
     });
 
