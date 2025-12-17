@@ -63,10 +63,11 @@ serve(async (req) => {
       );
 
     /* 4️⃣ Tell client to log out (only when we actually enforced) */
-return new Response(
-  JSON.stringify({ ok: true, enforced: true, forceLogout: true }),
-  { headers: corsHeaders }
-);
+
+    return new Response(
+      JSON.stringify({ ok: true, enforced: true, forceLogout: true }),
+      { headers: corsHeaders }
+    );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: String(err) }),
