@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { user_id } = await req.json();
+    const { user_id, device_id } = await req.json();
 
     if (!user_id) {
       return new Response(
@@ -39,7 +39,7 @@ serve(async (req) => {
     /* 2️⃣ Fetch devices (oldest first) */
     const { data: devices } = await supabaseAdmin
       .from("user_devices")
-      .select("id")
+      .select("id, device_id")
       .eq("user_id", user_id)
       .order("last_seen_at", { ascending: true });
 
@@ -53,6 +53,7 @@ serve(async (req) => {
     /* 3️⃣ Remove excess devices */
     const excess = devices.length - limit;
     const toRemove = devices.slice(0, excess);
+    const removedDeviceIds = toRemove.map(d => d.device_id);
 
     await supabaseAdmin
       .from("user_devices")
@@ -65,7 +66,10 @@ serve(async (req) => {
     /* 4️⃣ Tell client to log out (only when we actually enforced) */
 
     return new Response(
-      JSON.stringify({ ok: true, enforced: true, forceLogout: true }),
+      JSON.stringify({
+        enforced: true,
+        evicted_devices: removedDeviceIds,
+      }),
       { headers: corsHeaders }
     );
   } catch (err) {

@@ -41,15 +41,16 @@ export default function DeviceEnforcer({ children }) {
 
     // 2️⃣ Enforce limit (server-side)
     const res = await supabase.functions.invoke("enforce-device-limit", {
-      body: { user_id: userId },
+      body: {
+        user_id: userId,
+        device_id: deviceIdRef.current,
+      },
     });
 
-    if (res.data?.forceLogout) {
-      await supabase.auth.signOut(); // wipe local tokens
-      toast.warn("Please log in again.");
-
-      navigate("/login", { replace: true }); // hard redirect → must log in again
-      return; // stop further renders
+    if (res.data?.evicted_devices?.includes(deviceIdRef.current)) {
+      await supabase.auth.signOut();
+      toast.warn("This device was logged out due to device limit.");
+      navigate("/login", { replace: true });
     }
   };
 
