@@ -2,20 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { useProfile } from "../contexts/ProfileContext";
 import { format, parseISO } from "date-fns";
-import {
-  Modal,
-  Button,
-  Form,
-  Card,
-  Badge,
-  Row,
-  Col,
-  ToastContainer,
-  ButtonGroup,
-} from "react-bootstrap";
+import { Modal, Button, Form, Card, Badge, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import Navbar from "../components/Navbar";
-import Header from "../components/Header";
 
 export default function AdminPanel() {
   const { isAdmin } = useProfile();
@@ -196,19 +184,6 @@ export default function AdminPanel() {
   if (!isAdmin)
     return <p className="p-4 text-center text-muted">Access denied.</p>;
 
-  /* ---------- visual helpers ---------- */
-  const GlassCard = ({ children }) => (
-    <Card
-      className="border-0 shadow-sm mb-4"
-      style={{
-        background: "rgba(232, 241, 246, 0.75)",
-        backdropFilter: "blur(6px)",
-      }}
-    >
-      <Card.Body>{children}</Card.Body>
-    </Card>
-  );
-
   const PremiumButton = ({ children, onClick, variant = "warning" }) => (
     <Button
       variant={variant}
@@ -243,23 +218,31 @@ export default function AdminPanel() {
         </Col>
       </Row>
 
-      <GlassCard>
-        <Row className="g-2 align-items-center">
-          <Col xs={12} md={8}>
-            <Form.Control
-              placeholder="Search by email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="rounded-pill"
-            />
-          </Col>
-          <Col xs={12} md={4} className="d-flex gap-2 justify-content-start">
-            <Badge bg="secondary">{users.length} users</Badge>
-            <Badge bg="success">{premiumUsers.length} premium</Badge>
-            <Badge bg="secondary">{freeUsers.length} free</Badge>
-          </Col>
-        </Row>
-      </GlassCard>
+      <Card
+        className="border-0 shadow-sm mb-4"
+        style={{
+          background: "rgba(232, 241, 246, 0.75)",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        <Card.Body>
+          <Row className="g-2 align-items-center">
+            <Col xs={12} md={8}>
+              <Form.Control
+                placeholder="Search by email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="rounded-pill"
+              />
+            </Col>
+            <Col xs={12} md={4} className="d-flex gap-2 justify-content-start">
+              <Badge bg="secondary">{users.length} users</Badge>
+              <Badge bg="success">{premiumUsers.length} premium</Badge>
+              <Badge bg="secondary">{freeUsers.length} free</Badge>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
       {loading ? (
         <div className="text-center py-5 text-muted">Loading users...</div>
@@ -298,9 +281,16 @@ export default function AdminPanel() {
               <p className="mb-2">
                 <strong>Current expiry:</strong>{" "}
                 {targetUser.tier_expires_at
-                  ? format(
-                      parseISO(targetUser.tier_expires_at),
-                      "yyyy-MM-dd HH:mm"
+                  ? new Date(targetUser.tier_expires_at).toLocaleDateString(
+                      "en-GB",
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }
                     )
                   : "Not premium"}
               </p>
@@ -332,7 +322,7 @@ export default function AdminPanel() {
               <p className="mb-1">
                 <strong>New expiry:</strong>{" "}
                 {computedTargetISO
-                  ? format(parseISO(computedTargetISO), "yyyy-MM-dd HH:mm")
+                  ? format(parseISO(computedTargetISO), "dd-MM-yyyy HH:mm")
                   : "-"}
               </p>
               <p className="mb-0">
@@ -430,7 +420,14 @@ function UserTable({ users, onExtend, onDemote, onDelete, onDevice }) {
               </td>
               <td className="d-none d-md-table-cell">
                 {u.tier_expires_at
-                  ? format(parseISO(u.tier_expires_at), "yyyy-MM-dd")
+                  ? new Date(u.tier_expires_at).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
                   : "-"}
               </td>
               <td>

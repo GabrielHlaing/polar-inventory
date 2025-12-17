@@ -137,10 +137,10 @@ export default function Inventory() {
         <div key={i} className="col-12">
           <Card className="shadow-sm border-0 p-3">
             <div className="d-flex align-items-center gap-3">
-              <SkeletonBox w={60} h={60} round />
+              <SkeletonBox w={40} h={40} />
               <div className="flex-grow-1">
                 <SkeletonBox w="70%" />
-                <SkeletonBox w={40} className="mt-2" />
+                <SkeletonBox w={40} />
               </div>
               <SkeletonBtn />
             </div>

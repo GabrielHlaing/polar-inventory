@@ -22,7 +22,7 @@ export default function Navbar() {
   const handleNav = (to) => {
     if (location.pathname === to) return;
 
-    navigate(to);
+    navigate(to, { replace: true });
   };
 
   return (
