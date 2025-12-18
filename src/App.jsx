@@ -30,7 +30,7 @@ import DeviceEnforcer from "./components/DeviceEnforcer";
 import FAQs from "./static pages/FAQs";
 
 export default function App() {
-  console.log(">>> App component mounted <<<");
+  console.log(">>> App mounted <<<");
   return (
     <AuthProvider>
       <DeviceEnforcer>

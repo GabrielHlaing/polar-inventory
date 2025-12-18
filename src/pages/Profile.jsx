@@ -220,7 +220,10 @@ export default function Profile() {
       </Card>
 
       {isAdmin && (
-        <Link to="/admin" className="btn btn-danger btn-sm rounded-pill mt-4">
+        <Link
+          to="/admin"
+          className="btn btn-danger btn-sm rounded-pill mx-4 mt-4"
+        >
           Admin Panel
         </Link>
       )}

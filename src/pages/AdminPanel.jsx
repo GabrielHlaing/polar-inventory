@@ -12,6 +12,7 @@ export default function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [working, setWorking] = useState(false);
 
   const [showExtend, setShowExtend] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
@@ -138,10 +139,11 @@ export default function AdminPanel() {
 
   const deleteUser = async (id) => {
     const confirmed = window.confirm(
-      "Delete this user permanently?\n\nThis will remove:\n• Account\n• Inventory\n• History\n• Devices\n\nThis action cannot be undone."
+      "Delete this user permanently?\n\nThis action cannot be undone."
     );
 
     if (!confirmed) return;
+    setWorking(true);
 
     try {
       const { error } = await supabase.functions.invoke("admin-delete-user", {
@@ -150,10 +152,12 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
+      setWorking(false);
       toast.success("User deleted permanently");
       await load();
     } catch (err) {
       console.error(err);
+      setWorking(false);
       toast.error("Failed to delete user");
     }
   };
@@ -255,6 +259,7 @@ export default function AdminPanel() {
             onDemote={demoteUser}
             onDelete={deleteUser}
             onDevice={openDeviceModal}
+            work={working}
           />
 
           <h4 className="fw-semibold mb-3 mt-5">Free Users</h4>
@@ -263,6 +268,7 @@ export default function AdminPanel() {
             onExtend={openExtendModal}
             onDemote={demoteUser}
             onDelete={deleteUser}
+            work={working}
           />
         </>
       )}
@@ -385,7 +391,7 @@ export default function AdminPanel() {
 }
 
 /* ---------- reusable table ---------- */
-function UserTable({ users, onExtend, onDemote, onDelete, onDevice }) {
+function UserTable({ users, onExtend, onDemote, onDelete, onDevice, work }) {
   if (users.length === 0)
     return <Card className="border-0 shadow-sm text-center p-4">No users</Card>;
 
@@ -459,8 +465,16 @@ function UserTable({ users, onExtend, onDemote, onDelete, onDevice }) {
                     size="sm"
                     variant="outline-danger"
                     onClick={() => onDelete(u.id)}
+                    disabled={work}
                   >
-                    Delete
+                    {work ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" />
+                        Delete
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
                   </Button>
                 </div>
               </td>

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useProfile } from "./ProfileContext";
-import { idbPut, idbGetAll, idbDelete, idbClear, STORE_NAMES } from "../idb";
+import { idbPut, idbGetAll, idbClear, STORE_NAMES } from "../idb";
 
 const ItemsContext = createContext();
 // eslint-disable-next-line react-refresh/only-export-components
@@ -32,7 +32,9 @@ export function ItemsProvider({ children }) {
 
     const local = await idbGetAll(STORE_NAMES.INVENTORY);
 
-    const clean = local.filter((i) => typeof i.name === "string" && i.id);
+    const clean = local.filter(
+      (i) => typeof i.name === "string" && i.id && i.is_active !== false
+    );
 
     // permanently fix corrupted cache
     if (clean.length !== local.length) {
@@ -47,6 +49,7 @@ export function ItemsProvider({ children }) {
       const { data, error } = await supabase
         .from("inventory")
         .select("*")
+        .eq("is_active", true)
         .order("name");
 
       if (!error && data) {
@@ -129,7 +132,6 @@ export function ItemsProvider({ children }) {
     const updated = {
       ...existing,
       ...changes,
-      updated_at: new Date().toISOString(),
     };
 
     await idbPut(STORE_NAMES.INVENTORY, updated);
@@ -141,7 +143,6 @@ export function ItemsProvider({ children }) {
         type: "update",
         itemId: id,
         payload: changes,
-        created_at: Date.now(),
       });
       return updated;
     }
@@ -157,7 +158,6 @@ export function ItemsProvider({ children }) {
         type: "update",
         itemId: id,
         payload: changes,
-        created_at: Date.now(),
       });
     }
 
@@ -165,35 +165,53 @@ export function ItemsProvider({ children }) {
   }
 
   // -------------------------
-  // DELETE ITEM
+  // DELETE ITEM (soft-delete)
   // -------------------------
   async function deleteItem(id) {
-    await idbDelete(STORE_NAMES.INVENTORY, id);
+    const existing = items.find((i) => i.id === id);
+    if (!existing) return {};
+
+    // 1. Soft-delete locally
+    const softDeleted = {
+      ...existing,
+      is_active: false,
+      created_at: new Date().toISOString(), // new timestamp for sync
+    };
+
+    // 2. Save to IndexedDB and remove from local state
+    await idbPut(STORE_NAMES.INVENTORY, softDeleted);
     setItems((p) => p.filter((i) => i.id !== id));
 
+    // 3. Offline → queue the full soft-deleted object
     if (!navigator.onLine) {
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
         queueId: crypto.randomUUID(),
-        type: "delete",
-        created_at: Date.now(),
+        type: "soft_delete",
+        created_at: softDeleted.created_at,
         itemId: id,
+        payload: softDeleted, // ← same object we saved locally
       });
       return {};
     }
 
-    const { error } = await supabase.from("inventory").delete().eq("id", id);
+    // 4. Online → send identical payload to server
+    const { error } = await supabase
+      .from("inventory")
+      .update(softDeleted) // ← full object (includes new created_at)
+      .eq("id", id);
 
     if (error) {
+      // failed → queue for retry
       await idbPut(STORE_NAMES.SYNC_QUEUE, {
         queueId: crypto.randomUUID(),
-        type: "delete",
-        created_at: Date.now(),
+        type: "soft_delete",
+        created_at: softDeleted.created_at,
         itemId: id,
+        payload: softDeleted,
       });
-    } else {
-      await loadItems();
     }
 
+    // 5. Do NOT re-fetch – trust local state
     return {};
   }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Modal, Button, Form, Card, Badge, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import FabBack from "../components/FabBack";
+import { FaTrash } from "react-icons/fa";
 
 export default function ItemDetails() {
   const { id } = useParams();
@@ -159,8 +160,9 @@ export default function ItemDetails() {
             variant="outline-danger"
             className="rounded-pill px-3"
             onClick={handleDelete}
+            disabled={!navigator.onLine}
           >
-            Delete
+            <FaTrash />
           </Button>
         </div>
       </Card.Body>

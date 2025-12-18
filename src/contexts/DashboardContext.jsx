@@ -76,7 +76,7 @@ export function DashboardProvider({ children }) {
       const { data: invData, error: invDataErr } = await supabase
         .from("inventory")
         .select("qty,purchase_price,sale_price")
-        .neq("active", false);
+        .eq("is_active", true);
 
       if (invDataErr) throw invDataErr;
 
