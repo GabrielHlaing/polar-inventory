@@ -97,7 +97,7 @@ export default function Navbar() {
             >
               {t.icon}
             </div>
-            <span>{t.label}</span>
+            <span className="text-center">{t.label}</span>
           </NavLink>
         ))}
       </nav>
