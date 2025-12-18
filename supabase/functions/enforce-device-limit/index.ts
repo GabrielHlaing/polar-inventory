@@ -53,20 +53,20 @@ serve(async (req) => {
     /* 3️⃣ Remove excess devices */
     const excess = devices.length - limit;
     const toRemove = devices.slice(0, excess);
-    const removedDeviceIds = toRemove.map(d => d.device_id);
 
     await supabaseAdmin
       .from("user_devices")
       .delete()
-      .in(
-        "id",
-        toRemove.map((d) => d.id)
-      );
+      .in("id", toRemove.map(d => d.id));
 
-    /* GLOBAL LOGOUT – the key */
     await supabaseAdmin.auth.admin.signOut(user_id, {
       scope: "global",
     });
+
+    return new Response(
+      JSON.stringify({ enforced: true }),
+      { headers: corsHeaders }
+    );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: String(err) }),

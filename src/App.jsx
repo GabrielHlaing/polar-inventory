@@ -20,13 +20,14 @@ import PrintInvoice from "./components/PrintInvoice";
 import AdminRoute from "./routes/AdminRoute";
 import AdminPanel from "./pages/AdminPanel";
 import Profile from "./pages/Profile";
-import MoreInfo from "./static pages/MoreInfo";
+import MoreInfo from "./pages/MoreInfo";
 import Tutorial from "./static pages/Tutorial";
 import Contact from "./static pages/Contact";
 import Protect from "./routes/Protect";
 import { ToastContainer } from "react-toastify";
 import { SyncProvider } from "./contexts/SyncContext";
 import DeviceEnforcer from "./components/DeviceEnforcer";
+import FAQs from "./static pages/FAQs";
 
 export default function App() {
   console.log(">>> App component mounted <<<");
@@ -70,6 +71,15 @@ export default function App() {
                           element={
                             <Protect>
                               <Contact />
+                            </Protect>
+                          }
+                        />
+
+                        <Route
+                          path="/faqs"
+                          element={
+                            <Protect>
+                              <FAQs />
                             </Protect>
                           }
                         />

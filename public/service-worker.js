@@ -45,6 +45,12 @@ function sameOrigin(req) {
   return new URL(req.url).origin === location.origin;
 }
 
+async function safeCacheMatch(req, fallbackUrl = "/") {
+  const cached = await caches.match(req);
+  if (cached) return cached;
+  return fetch(fallbackUrl, { cache: "no-store" });
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
@@ -62,7 +68,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(RUNTIME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match("/")))
+        .catch(() => safeCacheMatch(req))
     );
     return;
   }
@@ -84,7 +90,7 @@ self.addEventListener("fetch", (event) => {
           }
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => safeCacheMatch(req))
     );
     return;
   }
@@ -103,11 +109,10 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => {
-          // fallback for images
           if (req.destination === "image") {
-            return caches.match("/icons/icon-192.png");
+            return fetch("/icons/icon-192.png", { cache: "no-store" });
           }
-          return caches.match("/");
+          return fetch("/", { cache: "no-store" });
         });
     })
   );
