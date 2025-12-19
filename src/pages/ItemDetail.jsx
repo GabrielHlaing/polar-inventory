@@ -170,8 +170,11 @@ export default function ItemDetails() {
   );
 
   return (
-    <div className="container py-4" style={{ maxWidth: 680, marginTop: 80 }}>
+    <div className="container py-4" style={{ maxWidth: 680, marginTop: 30 }}>
       <FabBack />
+
+      <h1 className="fw-bold mb-4">Item Details</h1>
+
       <DetailCard />
 
       {/* ONE permanent modal – never re-created */}

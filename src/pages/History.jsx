@@ -166,7 +166,7 @@ export default function History() {
         <Card
           className="h-100 shadow-sm border-0"
           style={{
-            background: "linear-gradient(135deg,#e6f7ff 0%,#ffffff 100%",
+            background: "linear-gradient(135deg,#B8E6FF 0%,#ffffff 100%",
           }}
         >
           <Card.Body className="d-flex flex-column justify-content-between">
@@ -181,7 +181,7 @@ export default function History() {
         <Card
           className="h-100 shadow-sm border-0"
           style={{
-            background: "linear-gradient(135deg,#fff4e6 0%,#ffffff 100%",
+            background: "linear-gradient(135deg,#FFE9C2 0%,#ffffff 100%",
           }}
         >
           <Card.Body className="d-flex flex-column justify-content-between">

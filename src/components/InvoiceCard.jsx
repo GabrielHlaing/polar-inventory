@@ -101,6 +101,7 @@ export default function InvoiceCard({
       total_amount: freshTotal,
     });
 
+    toast.success("Editing successful!");
     setIsEditing(false);
     setSaving(false);
     loadItems();
@@ -111,6 +112,7 @@ export default function InvoiceCard({
     if (processing) return;
     setShowDeleteModal(false);
     await onDelete(invoice.id);
+    toast.info("Invoice deleted!");
     loadItems();
   };
 

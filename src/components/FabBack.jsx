@@ -12,8 +12,8 @@ export default function FabBack({ toHome = false }) {
       onClick={go}
       aria-label="Back"
       style={{
-        left: 16,
-        bottom: 16,
+        left: 25,
+        bottom: 45,
         width: 50,
         height: 50,
         display: "flex",

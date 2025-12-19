@@ -16,6 +16,7 @@ export default function Inventory() {
 
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customDays, setCustomDays] = useState("");
+  const [isHovered, setIsHovered] = useState(false);
 
   /* ---------- search ---------- */
   const [search, setSearch] = useState("");
@@ -367,8 +368,11 @@ export default function Inventory() {
             height: 56,
             borderRadius: "50%",
             border: "none",
-            background: "linear-gradient(135deg, #133a7fff 0%, #319ea2ff 100%)",
+            background: isHovered
+              ? "linear-gradient(135deg, #416bb4ff 0%, #61d3d7ff 100%)"
+              : "linear-gradient(135deg, #133a7fff 0%, #319ea2ff 100%)",
             color: "#fff",
+            transform: isHovered ? "scale(1.1)" : "scale(1)",
             fontWeight: 700,
             fontSize: "1rem",
             boxShadow:
@@ -381,7 +385,8 @@ export default function Inventory() {
           }}
           onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
           onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           {totalCount}
         </button>

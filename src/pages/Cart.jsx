@@ -161,7 +161,7 @@ export default function CartPage() {
     updateInvoiceInCache({ ...invoicePayload, history: historyRows });
     clearCart();
     toast.success("Checkout Successful!");
-    navigate(-1);
+    navigate("/history", { replace: true });
   };
 
   /* ---------- empty cart ---------- */
