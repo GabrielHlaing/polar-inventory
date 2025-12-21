@@ -172,9 +172,36 @@ export default function Home() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tickFormatter={(d) => d.slice(5)} />
-              <YAxis />
-              <Tooltip formatter={(val) => Number(val).toLocaleString()} />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(d) => {
+                  const [, m, day] = d.split("-");
+                  return `${day}-${m}`;
+                }}
+              />
+
+              <YAxis
+                width={70}
+                tickFormatter={(v) => Number(v).toLocaleString()}
+              />
+              <Tooltip
+                labelFormatter={(label) => {
+                  // label is "YYYY-MM-DD"
+                  const [y, m, d] = label.split("-");
+                  const date = new Date(y, m - 1, d);
+
+                  return date.toLocaleDateString(undefined, {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+                }}
+                formatter={(value, name) => [
+                  Number(value).toLocaleString(),
+                  name === "sales" ? "Sales" : "Purchases",
+                ]}
+              />
+
               <Legend />
               <Line
                 type="monotone"
