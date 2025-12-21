@@ -7,16 +7,16 @@ import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import { useProfile } from "../contexts/ProfileContext";
 import Header from "../components/Header";
+import FloatingCartButton from "../components/FloatingCartButton";
 
 export default function Inventory() {
   const navigate = useNavigate();
   const { items, loading, addItem } = useItems();
-  const { addToCart, totalCount } = useCart();
+  const { addToCart } = useCart();
   const { profile, expWarningDays, updateExpWarningDays } = useProfile();
 
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customDays, setCustomDays] = useState("");
-  const [isHovered, setIsHovered] = useState(false);
 
   /* ---------- search ---------- */
   const [search, setSearch] = useState("");
@@ -356,41 +356,7 @@ export default function Inventory() {
       )}
 
       {/* Floating cart button */}
-      {totalCount > 0 && (
-        <button
-          onClick={() => navigate("/cart")}
-          aria-label="Open cart"
-          style={{
-            position: "fixed",
-            bottom: 88, // clears navbar + thumb reach
-            right: 20,
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            border: "none",
-            background: isHovered
-              ? "linear-gradient(135deg, #416bb4ff 0%, #61d3d7ff 100%)"
-              : "linear-gradient(135deg, #133a7fff 0%, #319ea2ff 100%)",
-            color: "#fff",
-            transform: isHovered ? "scale(1.1)" : "scale(1)",
-            fontWeight: 700,
-            fontSize: "1rem",
-            boxShadow:
-              "0 10px 25px rgba(47, 111, 237, 0.45), inset 0 1px 2px rgba(255,255,255,0.25)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1051,
-            transition: "transform .15s ease, box-shadow .15s ease",
-          }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {totalCount}
-        </button>
-      )}
+      <FloatingCartButton />
 
       {/* ----------  add-item modal  ---------- */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>

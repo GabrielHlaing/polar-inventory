@@ -6,7 +6,6 @@ import {
   Table,
   Card,
   ButtonGroup,
-  Placeholder,
   Row,
   Col,
   Badge,
@@ -22,6 +21,7 @@ import { useSync } from "../contexts/SyncContext";
 import { idbPut, STORE_NAMES } from "../idb";
 import { toast } from "react-toastify";
 import FabBack from "../components/FabBack";
+import { useDashboard } from "../contexts/DashboardContext";
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -30,9 +30,10 @@ export default function CartPage() {
   const { items, updateItem, loadItems } = useItems();
   const { updateInvoiceInCache } = useHistoryData();
   const { isPremium } = useProfile();
+  const { fetchKpisAndSeries } = useDashboard();
   const { processSyncQueue } = useSync();
 
-  const [type, setType] = useState("purchase");
+  const [type, setType] = useState("sale");
   const [invoice, setInvoice] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [cartState, setCartState] = useState(cart);
@@ -52,15 +53,23 @@ export default function CartPage() {
       p.map((i) => (i.id === id ? { ...i, [field]: value } : i))
     );
 
+  const getMaxQty = (cartItem) => {
+    if (type !== "sale") return Infinity;
+    const inv = items.find((i) => i.id === cartItem.id);
+    return inv?.qty ?? Infinity;
+  };
+
   const changeQty = (id, delta) =>
     setCartState((p) =>
       p.map((i) => {
         if (i.id !== id) return i;
 
         const base = i.qty === "" ? 0 : Number(i.qty);
+        const max = getMaxQty(i);
+
         return {
           ...i,
-          qty: Math.max(1, base + delta),
+          qty: Math.min(Math.max(1, base + delta), max),
         };
       })
     );
@@ -160,6 +169,7 @@ export default function CartPage() {
     await loadItems();
     updateInvoiceInCache({ ...invoicePayload, history: historyRows });
     clearCart();
+    fetchKpisAndSeries();
     toast.success("Checkout Successful!");
     navigate("/history", { replace: true });
   };
@@ -176,15 +186,6 @@ export default function CartPage() {
         </Card>
       </div>
     );
-
-  /* ---------- skeleton loader ---------- */
-  const SkeletonCard = () => (
-    <Card className="mb-2 p-3 border-0 shadow-sm">
-      <Placeholder animation="glow">
-        <Placeholder xs={7} /> <Placeholder xs={4} /> <Placeholder xs={3} />
-      </Placeholder>
-    </Card>
-  );
 
   return (
     <div className="container py-4" style={{ marginBottom: 80 }}>
@@ -248,6 +249,9 @@ export default function CartPage() {
             <Col>
               <Form.Label className="small mb-1">Phone</Form.Label>
               <Form.Control
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9+ ]*"
                 placeholder="09xxxxxxxx"
                 value={customer.phone}
                 onChange={(e) => updateCustomer("phone", e.target.value)}
@@ -271,16 +275,16 @@ export default function CartPage() {
       <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <ButtonGroup>
           <Button
-            variant={type === "purchase" ? "primary" : "outline-primary"}
-            onClick={() => setType("purchase")}
-          >
-            Purchase
-          </Button>
-          <Button
             variant={type === "sale" ? "primary" : "outline-primary"}
             onClick={() => setType("sale")}
           >
             Sale
+          </Button>
+          <Button
+            variant={type === "purchase" ? "primary" : "outline-primary"}
+            onClick={() => setType("purchase")}
+          >
+            Purchase
           </Button>
         </ButtonGroup>
         <Button size="sm" variant="outline-danger" onClick={clearCart}>
@@ -330,13 +334,11 @@ export default function CartPage() {
                       e.target.value === "" ? "" : e.target.value
                     )
                   }
-                  onBlur={(e) =>
-                    handleChange(
-                      c.id,
-                      "qty",
-                      Math.max(1, Number(e.target.value || 1))
-                    )
-                  }
+                  onBlur={(e) => {
+                    const max = getMaxQty(c);
+                    const v = Math.max(1, Number(e.target.value || 1));
+                    handleChange(c.id, "qty", Math.min(v, max));
+                  }}
                   style={{ width: 70 }}
                 />
                 <Button
@@ -346,6 +348,12 @@ export default function CartPage() {
                 >
                   +
                 </Button>
+
+                {type === "sale" && (
+                  <div className="small text-success fst-italic">
+                    Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
+                  </div>
+                )}
               </div>
 
               {/* price fields - side-by-side on ≥ 360 px */}
@@ -456,13 +464,11 @@ export default function CartPage() {
                           e.target.value === "" ? "" : e.target.value
                         )
                       }
-                      onBlur={(e) =>
-                        handleChange(
-                          c.id,
-                          "qty",
-                          Math.max(1, Number(e.target.value || 1))
-                        )
-                      }
+                      onBlur={(e) => {
+                        const max = getMaxQty(c);
+                        const v = Math.max(1, Number(e.target.value || 1));
+                        handleChange(c.id, "qty", Math.min(v, max));
+                      }}
                       style={{ width: 70 }}
                     />
 
@@ -474,6 +480,12 @@ export default function CartPage() {
                       +
                     </Button>
                   </div>
+
+                  {type === "sale" && (
+                    <div className="mt-1 small text-success fst-italic">
+                      Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
+                    </div>
+                  )}
                 </td>
                 {type === "purchase" && (
                   <>

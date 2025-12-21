@@ -124,7 +124,7 @@ export function ProfileProvider({ children }) {
         updateSettings,
         updateExpWarningDays,
 
-        expWarningDays: profile?.settings?.exp_warning_days ?? 7,
+        expWarningDays: profile?.settings?.exp_warning_days ?? 0,
 
         // Helpers
         isAdmin: profile?.is_admin === true,

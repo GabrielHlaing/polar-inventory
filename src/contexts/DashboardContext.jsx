@@ -32,6 +32,18 @@ export function DashboardProvider({ children }) {
       const from30 = subDays(today, 29);
       const fromStr = fmt(from30);
 
+      const startOfDayISO = (d) => {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        return x.toISOString();
+      };
+
+      const endOfDayISO = (d) => {
+        const x = new Date(d);
+        x.setHours(23, 59, 59, 999);
+        return x.toISOString();
+      };
+
       // 1) Today's sales & purchases (by invoice_date)
       const { data: invoices, error: invErr } = await supabase
         .from("invoices")
@@ -94,20 +106,40 @@ export function DashboardProvider({ children }) {
       // fetch history rows of type 'sale' during period, and join inventory name
       const { data: topRaw, error: topErr } = await supabase
         .from("history")
-        .select("inventory_id, qty_change, inventory (id, name)")
-        .gte("created_at", fromStr)
-        .lte("created_at", todayStr)
+        .select(
+          `
+    inventory_id,
+    qty_change,
+    inventory (
+      id,
+      name,
+      is_active
+    )
+  `
+        )
+        .gte("created_at", startOfDayISO(from30))
+        .lte("created_at", endOfDayISO(today))
         .eq("type", "sale");
 
       if (topErr) throw topErr;
 
       const agg = {};
+
       (topRaw || []).forEach((h) => {
+        if (!h.inventory) return; // safety guard
+
         const id = h.inventory_id;
-        const n = Number(h.qty_change || 0);
-        if (!agg[id])
-          agg[id] = { id, name: h.inventory?.name || "Item", qty: 0 };
-        agg[id].qty += Math.abs(n);
+
+        if (!agg[id]) {
+          agg[id] = {
+            id,
+            name: h.inventory.name,
+            is_active: h.inventory.is_active,
+            qty: 0,
+          };
+        }
+
+        agg[id].qty += Math.abs(Number(h.qty_change || 0));
       });
 
       const topArr = Object.values(agg)

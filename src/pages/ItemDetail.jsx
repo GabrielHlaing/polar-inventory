@@ -6,6 +6,7 @@ import { Modal, Button, Form, Card, Badge, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import FabBack from "../components/FabBack";
 import { FaTrash } from "react-icons/fa";
+import FloatingCartButton from "../components/FloatingCartButton";
 
 export default function ItemDetails() {
   const { id } = useParams();
@@ -176,6 +177,7 @@ export default function ItemDetails() {
       <h1 className="fw-bold mb-4">Item Details</h1>
 
       <DetailCard />
+      <FloatingCartButton />
 
       {/* ONE permanent modal – never re-created */}
       <Modal show={showEdit} onHide={() => setShowEdit(false)} centered>

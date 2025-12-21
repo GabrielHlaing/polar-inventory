@@ -228,7 +228,12 @@ export default function Home() {
                 style={{ background: "#f8f9fa" }}
               >
                 <div>
-                  <div className="fw-medium">{it.name}</div>
+                  <div className="fw-medium">
+                    {it.name}{" "}
+                    {!it.is_active && (
+                      <span className="text-muted small ms-2">(Deleted)</span>
+                    )}
+                  </div>
                   <div className="small text-muted">Sold: {it.qty}</div>
                 </div>
                 <Badge

@@ -314,19 +314,19 @@ export default function PrintInvoice() {
           <div
             className="d-flex fw-semibold small pb-1 mb-1"
             style={{
-              background: tint(shop.color, "18"),
+              background: tint(shop.color, "20"),
               padding: "6px 4px",
               borderRadius: 6,
             }}
           >
             <span className="flex-fill">Item</span>
-            <span className="text-center" style={{ width: 48 }}>
+            <span className="text-center" style={{ width: 36 }}>
               Qty
             </span>
-            <span className="text-end" style={{ width: 72 }}>
+            <span className="text-end" style={{ width: 78 }}>
               Price
             </span>
-            <span className="text-end" style={{ width: 80 }}>
+            <span className="text-end" style={{ width: 86 }}>
               Total
             </span>
           </div>
@@ -338,13 +338,13 @@ export default function PrintInvoice() {
               style={{ borderColor: tint(shop.color, "22") }}
             >
               <span className="flex-fill">{item.metadata?.name}</span>
-              <span className="text-center" style={{ width: 48 }}>
+              <span className="text-center" style={{ width: 36 }}>
                 {item.qty_change}
               </span>
-              <span className="text-end" style={{ width: 72 }}>
+              <span className="text-end" style={{ width: 78 }}>
                 {getPrice(item).toLocaleString()} Ks
               </span>
-              <span className="text-end fw-semibold" style={{ width: 80 }}>
+              <span className="text-end fw-semibold" style={{ width: 86 }}>
                 {calcTotal(item).toLocaleString()} Ks
               </span>
             </div>

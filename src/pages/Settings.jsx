@@ -128,7 +128,6 @@ export default function SettingsPage() {
       .from("shop-logos")
       .remove([oldPath]);
 
-    console.log("DELETE PATH:", oldPath);
     console.log("DELETE RESULT:", { data, error });
 
     if (error) alert("Delete failed: " + error.message);
