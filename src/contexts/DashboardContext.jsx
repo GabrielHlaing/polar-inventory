@@ -201,6 +201,7 @@ export function DashboardProvider({ children }) {
         topItems,
         lastFetched,
         refresh,
+        fetchKpisAndSeries,
       }}
     >
       {children}

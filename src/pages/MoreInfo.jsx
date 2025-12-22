@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import { BsBook, BsChatDots, BsQuestionCircle } from "react-icons/bs";
+import {
+  BsBook,
+  BsChatDots,
+  BsPlusCircle,
+  BsQuestionCircle,
+} from "react-icons/bs";
+import { BiSolidDevices } from "react-icons/bi";
 
 export default function MoreInfo() {
   return (
@@ -157,6 +163,83 @@ export default function MoreInfo() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Pricing Section */}
+        <div className="mt-5">
+          <h2 className="fw-bold mb-2" style={{ color: "#1f3a5f" }}>
+            Pricing
+          </h2>
+          <p className="text-muted mb-4">
+            Transparent pricing designed for small to medium businesses
+          </p>
+
+          <div className="row">
+            {/* Base Plan */}
+            <div className="col-12 col-md-6 mb-3">
+              <div
+                className="card pricing-card border-0 h-100"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #d8e5fdff 0%, #f4f7fcff 100%)",
+                }}
+              >
+                <div className="card-body">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <BiSolidDevices className="text-dark" />
+                    <h5 className="fw-semibold mb-0">Default Plan</h5>
+                  </div>
+                  <p className="text-muted small mb-3">
+                    Includes up to <strong>3 devices</strong>
+                  </p>
+
+                  <ul className="list-unstyled mb-0">
+                    <li className="mb-2">
+                      <strong>1 Month:</strong> 15,000 Ks
+                    </li>
+                    <li>
+                      <strong>1 Year:</strong> 150,000 Ks
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Extra Device */}
+            <div className="col-12 col-md-6 mb-3">
+              <div
+                className="card pricing-card border-0 h-100"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #f9e7d1ff 0%, #faf6f0ff 100%)",
+                }}
+              >
+                <div className="card-body">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <BsPlusCircle className="text-primary" />
+                    <h5 className="fw-semibold mb-0">Extra Device</h5>
+                  </div>
+                  <p className="text-muted small mb-3">
+                    Add <strong>1 additional device</strong>
+                  </p>
+
+                  <ul className="list-unstyled mb-0">
+                    <li className="mb-2">
+                      <strong>1 Month:</strong> 3,000 Ks
+                    </li>
+                    <li>
+                      <strong>1 Year:</strong> 30,000 Ks
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-muted small mt-3">
+            * Extra devices are valid for the selected duration and will be
+            removed after expiry.
+          </p>
         </div>
       </div>
     </>

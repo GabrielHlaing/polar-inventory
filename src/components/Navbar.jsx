@@ -6,10 +6,14 @@ import {
   BsInfoCircle,
   BsGear,
 } from "react-icons/bs";
+import { useProfile } from "../contexts/ProfileContext";
+import UpgradeBar from "./UpgradeBar";
+import ExpiryWarningBar from "./ExpWarningBar";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile } = useProfile();
 
   const tabs = [
     { to: "/", label: "Home", icon: <BsHouse /> },
@@ -24,8 +28,34 @@ export default function Navbar() {
     navigate(to, { replace: true });
   };
 
+  function getDaysRemaining(expiryDate) {
+    if (!expiryDate) return null;
+
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry - now;
+
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  const daysRemaining =
+    profile?.tier === "premium"
+      ? getDaysRemaining(profile?.tier_expires_at)
+      : null;
+
+  const showUpgradeBar = profile?.tier === "free";
+  const showExpiryWarning =
+    profile?.tier === "premium" &&
+    daysRemaining !== null &&
+    daysRemaining <= 3 &&
+    daysRemaining > 0;
+
   return (
     <>
+      {showUpgradeBar && <UpgradeBar />}
+
+      {showExpiryWarning && <ExpiryWarningBar daysRemaining={daysRemaining} />}
+
       {/* Micro-interactions & animation */}
       <style>
         {`

@@ -106,7 +106,9 @@ export default function Profile() {
             <span className="fw-bold">{profile.name}</span>
             <TierBadge />
           </div>
-          <div className="small mb-1">Email: {profile.email}</div>
+          <div className="small mb-1">
+            Email: <span className="fw-bold">{profile.email}</span>
+          </div>
           <div className="small">
             Expires at:{" "}
             <span className="fw-bold">
@@ -121,6 +123,10 @@ export default function Profile() {
                   })
                 : "—"}
             </span>
+          </div>
+          <div className="small mb-1">
+            Device Limit:{" "}
+            <span className="fw-bold">{profile.device_limit}</span>
           </div>
         </PremiumCard>
       ) : (

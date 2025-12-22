@@ -144,10 +144,10 @@ export default function Receipt({ shop, invoice }) {
                 {item.qty_change}
               </span>
               <span className="text-end" style={{ width: 72 }}>
-                {getPrice(item).toLocaleString()} Ks
+                {getPrice(item).toLocaleString()}
               </span>
               <span className="text-end fw-semibold" style={{ width: 80 }}>
-                {calcTotal(item).toLocaleString()} Ks
+                {calcTotal(item).toLocaleString()}
               </span>
             </div>
           ))}
