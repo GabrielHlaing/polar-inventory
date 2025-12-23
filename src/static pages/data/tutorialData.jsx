@@ -7,6 +7,42 @@ import setting from "./setting.png";
 
 export const tutorialData = [
   {
+    id: "install-android",
+    title: "Install လုပ်နည်း - Android",
+    steps: [
+      "Android ဖုန်းတွင် Chrome browser ကို ဖွင့်ပြီး Polar Inventory website ကို ဝင်ပါ။",
+      "Website ပွင့်လာပါက browser အပေါ်ညာဘက်ရှိ three dots (⋮) ကို နှိပ်ပါ။",
+      "Menu ထဲမှ Add to Home screen သို့မဟုတ် Install app ကို ရွေးပါ။",
+      "Confirm box ပေါ်လာပါက Install ကို နှိပ်ပါ။",
+      "Install ပြီးသွားပါက Home screen တွင် Polar Inventory app icon ပေါ်လာမည်ဖြစ်ပြီး app တစ်ခုလို အသုံးပြုနိုင်ပါပြီ။",
+    ],
+    image: [],
+  },
+  {
+    id: "install-ios",
+    title: "Install လုပ်နည်း - IOS",
+    steps: [
+      "iPhone သို့မဟုတ် iPad တွင် Chrome သို့မဟုတ် နှစ်သက်ရာ browser ကို ဖွင့်ပြီး Polar Inventory website ကို ဝင်ပါ။",
+      "ညာဘက်အပေါ်ဘက်ရှိ Share icon (စတုရန်းနှင့်မြှားပုံ) ကို နှိပ်ပါ။",
+      "Menu ထဲမှ Add to Home Screen ကို ရွေးပါ။",
+      "App name ကို စစ်ဆေးပြီး Add ကို နှိပ်ပါ။",
+      "Home screen တွင် Polar Inventory app icon ပေါ်လာပြီး app အနေနဲ့ အသုံးပြုနိုင်ပါပြီ။",
+    ],
+    image: [],
+  },
+  {
+    id: "install-pc",
+    title: "Install လုပ်နည်း - PC",
+    steps: [
+      "PC သို့မဟုတ် Laptop တွင် Chrome သို့မဟုတ် နှစ်သက်ရာ browser ကို ဖွင့်ပြီး Polar Inventory website ကို ဝင်ပါ။",
+      "Address bar ဘေးတွင်ရှိ Install icon (computer + arrow icon) ကို နှိပ်ပါ။",
+      "Install confirmation box ပေါ်လာပါက Install ကို နှိပ်ပါ။",
+      "Install ပြီးသွားပါက Desktop သို့မဟုတ် Start menu တွင် Polar Inventory app ကို တွေ့ရပါမည်။",
+      "Browser မဖွင့်ဘဲ app တစ်ခုလို သီးသန့် အသုံးပြုနိုင်ပြီး offline mode ကိုပါ support ပေးထားပါတယ်။",
+    ],
+    image: [],
+  },
+  {
     id: "signup",
     title: "Sign up လုပ်နည်း (Account ဖွင့်နည်း)",
     steps: [

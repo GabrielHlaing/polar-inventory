@@ -112,8 +112,8 @@ export default function MoreInfo() {
                   <h5 className="mb-0 fw-semibold">Contact</h5>
                 </div>
                 <p className="text-muted">
-                  Need help, feedback, or technical support? Our team is here to
-                  help.
+                  Wanna extend Premium Time-limit (or) Device Limit? Feel free
+                  to contact us!
                 </p>
                 <Link
                   to="/contact"

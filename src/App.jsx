@@ -28,6 +28,7 @@ import { ToastContainer } from "react-toastify";
 import { SyncProvider } from "./contexts/SyncContext";
 import DeviceEnforcer from "./components/DeviceEnforcer";
 import FAQs from "./static pages/FAQs";
+import NotFound from "./static pages/NotFound";
 
 export default function App() {
   console.log(">>> App mounted <<<");
@@ -150,6 +151,8 @@ export default function App() {
                             </AdminRoute>
                           }
                         />
+
+                        <Route path="*" element={<NotFound />} />
                       </Routes>
 
                       <ToastContainer

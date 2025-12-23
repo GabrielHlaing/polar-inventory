@@ -4,6 +4,61 @@ import { SiViber } from "react-icons/si";
 import { FaFacebookMessenger, FaTelegram } from "react-icons/fa";
 import fbpage from "./data/fbpage.png";
 
+const contactMethods = [
+  {
+    key: "phone",
+    label: "Phone",
+    icon: BsTelephone,
+    items: [
+      {
+        label: "Admin 1",
+        href: "tel:+959123456789",
+      },
+      {
+        label: "Admin 2",
+        href: "tel:+959123456789",
+      },
+    ],
+  },
+  {
+    key: "viber",
+    label: "Viber",
+    icon: SiViber,
+    items: [
+      {
+        label: "Chat on Viber",
+        href: "viber://chat?number=%2B959123456789",
+      },
+    ],
+  },
+  {
+    key: "telegram",
+    label: "Telegram",
+    icon: FaTelegram,
+    items: [
+      {
+        label: "Admin 1",
+        href: "https://t.me/admin1_username",
+      },
+      {
+        label: "Admin 2",
+        href: "https://t.me/admin2_username",
+      },
+    ],
+  },
+  {
+    key: "messenger",
+    label: "Messenger",
+    icon: FaFacebookMessenger,
+    items: [
+      {
+        label: "Polar Inventory",
+        href: "https://m.me/your_facebook_page",
+      },
+    ],
+  },
+];
+
 export default function Contact() {
   return (
     <div className="container py-4" style={{ marginBottom: 80, maxWidth: 860 }}>
@@ -28,81 +83,41 @@ export default function Contact() {
       >
         <div className="card-body px-4 py-3">
           <ul className="list-unstyled mb-0">
-            {/* Phone */}
-            <li className="d-flex align-items-center mb-3">
-              <span className="fw-medium me-2">
-                <BsTelephone
-                  className="me-2 text-primary"
-                  style={{ fontSize: 18 }}
-                />{" "}
-                Phone:
-              </span>
-              <a
-                href="tel:+959123456789"
-                className="text-decoration-none"
-                style={{ color: "#1f5fbf" }}
-              >
-                +95 9 123 456 789
-              </a>
-            </li>
+            {contactMethods.map(({ key, label, icon: Icon, items }) => (
+              <li key={key} className="mb-3">
+                <div className="row align-items-start">
+                  {/* Left: label */}
+                  <div className="col-5 fw-medium d-flex align-items-center">
+                    <Icon
+                      className="me-2 text-primary"
+                      style={{
+                        fontSize: 18,
+                        flexShrink: 0, // 🔑 important
+                      }}
+                    />
+                    {label}:
+                  </div>
 
-            {/* Viber */}
-            <li className="d-flex align-items-center mb-3">
-              <span className="fw-medium me-2">
-                <SiViber
-                  className="me-2 text-primary"
-                  style={{ fontSize: 18 }}
-                />{" "}
-                Viber:
-              </span>
-              <a
-                href="viber://chat?number=%2B959123456789"
-                className="text-decoration-none"
-                style={{ color: "#1f5fbf" }}
-              >
-                Chat on Viber
-              </a>
-            </li>
-
-            {/* Telegram */}
-            <li className="d-flex align-items-center mb-3">
-              <span className="fw-medium me-2">
-                <FaTelegram
-                  className="me-2 text-primary"
-                  style={{ fontSize: 18 }}
-                />{" "}
-                Telegram:
-              </span>
-              <a
-                href="https://t.me/your_telegram_username"
-                target="_blank"
-                rel="noreferrer"
-                className="text-decoration-none"
-                style={{ color: "#1f5fbf" }}
-              >
-                @your_telegram_username
-              </a>
-            </li>
-
-            {/* Facebook */}
-            <li className="d-flex align-items-center">
-              <span className="fw-medium me-2">
-                <FaFacebookMessenger
-                  className="me-2 text-primary"
-                  style={{ fontSize: 18 }}
-                />{" "}
-                Messenger:
-              </span>
-              <a
-                href="https://m.me/your_facebook_page"
-                target="_blank"
-                rel="noreferrer"
-                className="text-decoration-none"
-                style={{ color: "#1f5fbf" }}
-              >
-                Message us on Facebook
-              </a>
-            </li>
+                  {/* Right: contacts */}
+                  <div className="col-7">
+                    <div className="d-flex flex-column gap-1">
+                      {items.map((item, idx) => (
+                        <a
+                          key={idx}
+                          href={item.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-decoration-none"
+                          style={{ color: "#1f5fbf", fontWeight: 500 }}
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

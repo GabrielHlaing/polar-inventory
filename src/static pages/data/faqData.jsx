@@ -1,5 +1,13 @@
 export const faqData = [
   {
+    q: "Polar Inventory က Android app လား၊ IOS app လား?",
+    a: "Progressive Web Application (PWA) လို့ခေါ်တဲ့ Web app တစ်မျိုးဖြစ်ပါတယ်။ ပုံမှန် Web app တွေနဲ့မတူတာက သူ့ကို Mobile application အနေနဲ့ Install လုပ်ပြီးသုံးလို့ရတာပဲဖြစ်ပါတယ်။",
+  },
+  {
+    q: "ဒီ Application မှာ တခြား Web app / Mobile app သီးသန့်တွေထက် ဘာတွေအားသာချက်ရှိလဲ?",
+    a: "PWA ဖြစ်တာကြောင့် Link တစ်မျိုးတည်းနဲ့ Android, IOS, Window, Mac စတဲ့ platform အစုံမှာသုံးလို့ရပါတယ်။ ဒါ့အပြင် Update တွေကို Server က တင်ပြီးပြီးချင်း One click နဲ့ တင်လို့ရမယ်။ Web app တွေလို Progress bar အမြဲမမြင်ရဘူး။ ခြုံပြောရရင် Web app နဲ့ Mobile app တို့ရဲ့ အားသာချက်တွေကို တစ်ခုတည်းအဖြစ်ပေါင်းထားတဲ့ App တစ်ခုဖြစ်ပါတယ်။",
+  },
+  {
     q: "Free trial ရှိလား?",
     a: "ရှိပါတယ်။ Account အသစ် sign up လုပ်လိုက်တာနဲ့ Premium feature ကို 7 ရက်အခမဲ့ အသုံးပြုနိုင်ပါတယ်။",
   },
@@ -13,12 +21,7 @@ export const faqData = [
   },
   {
     q: "Account တစ်ခုနဲ့ device ဘယ်နှစ်ခုအထိ အသုံးပြုနိုင်လဲ?",
-    a: "Account တစ်ခုစီမှာ device limit သတ်မှတ်ထားပါတယ် (Default - 3 devices)။ Limit ကို ကျော်သွားရင် အဟောင်းဆုံး device အားလုံးကို system က အလိုအလျောက် logout သွားမှာပါ။",
-  },
-
-  {
-    q: "အသုံးပြုနေတုန်း အလိုအလျောက် logout ဖြစ်နိုင်လား?",
-    a: "Device limit ကြောင့် logout ဖြစ်ပါက page refresh လုပ်တဲ့အချိန် သို့မဟုတ် app ပြန်ဖွင့်တဲ့အချိန်မှာ logout ဖြစ်နိုင်ပါတယ်။",
+    a: "Account တစ်ခုစီမှာ device limit သတ်မှတ်ထားပါတယ် (Default - 3 devices)။ Limit ကို ကျော်သွားရင် device အားလုံးကို system က အလိုအလျောက် logout သွားမှာပါ။",
   },
   {
     q: "သုံးနေရင်းနဲ့ device အားလုံးက logout ဖြစ်သွားတာဘာကြောင့်လဲ?",
@@ -46,6 +49,6 @@ export const faqData = [
   },
   {
     q: "Premium သက်တမ်းတိုးတာ၊ Device limit တိုးတာတွေဘယ်လိုလုပ်မလဲ?",
-    a: "Contact page မှာပေးထားတဲ့ Phone, Viber, Telegram, Messenger နှစ်သက်ရာကိုဆက်သွယ်ပြီး Username, Email ပြောပြပြီး ဈေးနှုန်းချိုသာစွာနဲ့ Premium သက်တမ်း၊ Device limit တိုးလို့ရပါတယ်",
+    a: "Contact page မှာပေးထားတဲ့ Phone, Viber, Telegram, Messenger နှစ်သက်ရာကိုဆက်သွယ်ကာ Username, Email ပြောပြပြီး ဈေးနှုန်းချိုသာစွာနဲ့ Premium သက်တမ်း၊ Device limit တိုးလို့ရပါတယ်",
   },
 ];
