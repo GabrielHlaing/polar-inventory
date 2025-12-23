@@ -10,7 +10,7 @@ export default function NotFound() {
       style={{
         minHeight: "100vh",
         background:
-          "linear-gradient(180deg, #eef4ff 0%, #f8fbff 60%, #ffffff 100%)",
+          "linear-gradient(180deg, #d4e1f9ff 0%, #d3e1f3ff 60%, #ffffff 100%)",
         padding: 16,
       }}
     >
