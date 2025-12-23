@@ -84,7 +84,7 @@ export default function Login() {
             {/* Header */}
             <div className="text-center mb-4">
               <img
-                src="/Polar-logo.png"
+                src="/polar-logo.png"
                 alt="Polar Inventory"
                 height="52"
                 className="mb-3"

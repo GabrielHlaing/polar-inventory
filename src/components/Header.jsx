@@ -36,7 +36,7 @@ export default function Header() {
               }}
             >
               <img
-                src="/Polar-logo.png"
+                src="/polar-logo.png"
                 alt="Polar Inventory"
                 style={{
                   height: 36,
