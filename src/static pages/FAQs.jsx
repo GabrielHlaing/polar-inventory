@@ -3,10 +3,15 @@ import { faqData } from "./data/faqData";
 import FabBack from "../components/FabBack";
 
 export default function FAQs() {
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIds, setOpenIds] = useState(new Set());
 
-  const toggle = (idx) => {
-    setOpenIndex((prev) => (prev === idx ? null : idx));
+  const toggleSection = (id) => {
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   return (
@@ -21,7 +26,7 @@ export default function FAQs() {
       </h1>
 
       {faqData.map((item, idx) => {
-        const isOpen = openIndex === idx;
+        const isOpen = openIds.has(idx);
 
         return (
           <div
@@ -31,7 +36,7 @@ export default function FAQs() {
           >
             {/* Question */}
             <button
-              onClick={() => toggle(idx)}
+              onClick={() => toggleSection(idx)}
               className="w-100 text-start border-0 px-4 py-3 d-flex justify-content-between align-items-center"
               style={{
                 background:

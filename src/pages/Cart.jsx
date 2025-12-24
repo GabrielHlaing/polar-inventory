@@ -181,7 +181,7 @@ export default function CartPage() {
         <Card className="border-0 shadow-sm d-inline-block px-4 py-5">
           <Card.Body className="text-muted">Your cart is empty.</Card.Body>
           <Button className="rounded-pill px-4" onClick={() => navigate(-1)}>
-            Back to Inventory
+            Go Back
           </Button>
         </Card>
       </div>
@@ -213,7 +213,7 @@ export default function CartPage() {
               <Form.Control
                 value={invoice}
                 onChange={(e) => setInvoice(e.target.value)}
-                placeholder="INV-001"
+                placeholder="eg. INV-001"
               />
             </Col>
             <Col md={6}>

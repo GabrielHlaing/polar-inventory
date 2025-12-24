@@ -3,11 +3,51 @@ import FabBack from "../components/FabBack";
 import { tutorialData } from "./data/tutorialData";
 
 export default function Tutorial() {
-  const [openId, setOpenId] = useState(null);
+  const [openIds, setOpenIds] = useState(new Set());
   const [previewImg, setPreviewImg] = useState(null);
+
+  const toggleSection = (id) => {
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <>
+      <style>
+        {`
+        .screenshot-thumb {
+        flex: 0 0 auto;
+        max-width: 30%;       /* desktop */
+      }
+
+      .screenshot-thumb img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        cursor: zoom-in;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .screenshot-thumb img:hover {
+        transform: scale(1.04);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+      }
+
+      /* Mobile tuning */
+      @media (max-width: 576px) {
+        .screenshot-thumb {
+          max-width: 50%;
+        }
+      }
+
+        `}
+      </style>
       <div
         className="container py-4"
         style={{ marginBottom: 80, maxWidth: 960 }}
@@ -19,7 +59,7 @@ export default function Tutorial() {
         </h1>
 
         {tutorialData.map((section) => {
-          const isOpen = openId === section.id;
+          const isOpen = openIds.has(section.id);
 
           return (
             <div
@@ -29,7 +69,7 @@ export default function Tutorial() {
             >
               {/* Header */}
               <button
-                onClick={() => setOpenId(isOpen ? null : section.id)}
+                onClick={() => toggleSection(section.id)}
                 className="w-100 text-start border-0 px-4 py-3 d-flex justify-content-between align-items-center"
                 style={{
                   background:
@@ -65,26 +105,19 @@ export default function Tutorial() {
                   </ul>
 
                   {/* Screenshots */}
-                  {Array.isArray(section.image) &&
-                    section.image.map((img, i) => (
-                      <div
-                        key={i}
-                        className="d-flex justify-content-center mb-3"
-                      >
-                        <img
-                          src={img}
-                          alt={`${section.title} screenshot ${i + 1}`}
-                          className="img-fluid rounded"
-                          onClick={() => setPreviewImg(img)}
-                          style={{
-                            maxWidth: "100%",
-                            cursor: "zoom-in",
-                            border: "1px solid #e5e7eb",
-                            boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                          }}
-                        />
-                      </div>
-                    ))}
+                  {Array.isArray(section.image) && (
+                    <div className="d-flex flex-wrap gap-3 justify-content-center mb-3">
+                      {section.image.map((img, i) => (
+                        <div key={i} className="screenshot-thumb">
+                          <img
+                            src={img}
+                            alt={`${section.title} screenshot ${i + 1}`}
+                            onClick={() => setPreviewImg(img)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

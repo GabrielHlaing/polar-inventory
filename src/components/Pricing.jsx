@@ -24,9 +24,13 @@ export default function Pricing() {
             100% { background-position: 200% 0; }
           }
 
-          @keyframes glowPulse {
-            0%, 100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
-            50% { box-shadow: 0 0 24px rgba(59,130,246,0.45); }
+         @keyframes glowPulse {
+            0%, 100% {
+              filter: drop-shadow(0 0 0 rgba(96,165,250,0));
+            }
+            50% {
+              filter: drop-shadow(0 0 18px rgba(0, 98, 255, 0.55));
+            }
           }
 
           .promo-hero {
@@ -37,8 +41,10 @@ export default function Pricing() {
               #1e3a8a 60%
             );
             color: white;
+            position: relative;
+            z-index: 1;
             background-size: 200% 100%;
-            animation: shimmer 4s linear infinite;
+            animation: shimmer 4s linear infinite, glowPulse 2.5s ease-in-out infinite;
             border-radius: 16px;
             padding: 20px;
             border: 1px solid #082882ff;
@@ -49,7 +55,7 @@ export default function Pricing() {
           .pricing-card {
             transition: transform 0.25s ease, box-shadow 0.25s ease;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
           }
 
           .pricing-card:hover {
@@ -89,9 +95,15 @@ export default function Pricing() {
             <div className="d-flex align-items-center gap-3">
               <BsLightningCharge size={26} className="text-warning" />
               <div>
-                <h4 className="fw-bold mb-1" style={{ fontFamily: "Kalam" }}>
+                <h3
+                  className="fw-bold mb-1"
+                  style={{
+                    fontFamily: "Kalam",
+                    textShadow: "2px 2px 4px rgba(46, 172, 18, 0.5)",
+                  }}
+                >
                   {PROMOTION.label}
-                </h4>
+                </h3>
                 <p className="mb-0">
                   Enjoy <strong>{PROMOTION.discountPercent}% OFF</strong> on all
                   plans — {PROMOTION.note}

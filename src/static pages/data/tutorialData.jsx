@@ -1,7 +1,19 @@
-import signup from "./profile.png";
-import addItem from "./addItem.png";
+import android1 from "./android1.png";
+import android2 from "./android2.png";
+import android3 from "./android3.png";
+import ios1 from "./ios1.png";
+import ios2 from "./ios2.png";
+import ios3 from "./ios3.png";
+import desktop1 from "./desktop1.png";
+import desktop2 from "./desktop2.png";
+import profile1 from "./profile1.png";
+import profile2 from "./profile2.png";
+import profile3 from "./profile3.png";
+import addItem1 from "./addItem1.png";
+import addItem2 from "./addItem2.png";
 import updateQty from "./updateQty.png";
-import cart from "./cart.png";
+import cart1 from "./cart1.png";
+import cart2 from "./cart2.png";
 import history from "./history.png";
 import setting from "./setting.png";
 
@@ -16,7 +28,7 @@ export const tutorialData = [
       "Confirm box ပေါ်လာပါက Install ကို နှိပ်ပါ။",
       "Install ပြီးသွားပါက Home screen တွင် Polar Inventory app icon ပေါ်လာမည်ဖြစ်ပြီး app တစ်ခုလို အသုံးပြုနိုင်ပါပြီ။",
     ],
-    image: [],
+    image: [android1, android2, android3],
   },
   {
     id: "install-ios",
@@ -28,7 +40,7 @@ export const tutorialData = [
       "App name ကို စစ်ဆေးပြီး Add ကို နှိပ်ပါ။",
       "Home screen တွင် Polar Inventory app icon ပေါ်လာပြီး app အနေနဲ့ အသုံးပြုနိုင်ပါပြီ။",
     ],
-    image: [],
+    image: [ios1, ios2, ios3],
   },
   {
     id: "install-pc",
@@ -40,7 +52,7 @@ export const tutorialData = [
       "Install ပြီးသွားပါက Desktop သို့မဟုတ် Start menu တွင် Polar Inventory app ကို တွေ့ရပါမည်။",
       "Browser မဖွင့်ဘဲ app တစ်ခုလို သီးသန့် အသုံးပြုနိုင်ပြီး offline mode ကိုပါ support ပေးထားပါတယ်။",
     ],
-    image: [],
+    image: [desktop1, desktop2],
   },
   {
     id: "signup",
@@ -52,7 +64,7 @@ export const tutorialData = [
       "Profile page တွင် မိမိ၏ User Name, Email, Account Expired Date နှင့် Device Limit ကို စစ်ဆေးကြည့်နိုင်ပါသည်။",
       "Profile ထဲမှ Change Password ကို အသုံးပြုပြီး Password အပြောင်းအလဲ ပြုလုပ်နိုင်ပါသည်။",
     ],
-    image: [signup],
+    image: [profile1, profile2, profile3],
   },
   {
     id: "inventory-setup",
@@ -65,7 +77,7 @@ export const tutorialData = [
       "Inventory စာရင်းထဲတွင် Item အသစ် တစ်မျိုး အောင်မြင်စွာ ထည့်ပြီးသား ဖြစ်လာမည်ဖြစ်ပါသည်။",
       "Warn Exp In ကိုအသုံးပြု၍ Exp Date နီးသောပစ္စည်းများကို အရောင်ပြောင်းပြီး သတိပေးနိုင်ပါသည်။",
     ],
-    image: [addItem],
+    image: [addItem1, addItem2],
   },
   {
     id: "update-qty",
@@ -90,7 +102,7 @@ export const tutorialData = [
       "အချက်အလက်အားလုံး ပြည့်စုံပါက Checkout ကို နှိပ်ပါ။",
       "Checkout ပြီးပါက Inventory Qty အလိုအလျောက် ပြောင်းလဲပြီး History တွင် မှတ်တမ်း သိမ်းဆည်းသွားမည် ဖြစ်ပါသည်။",
     ],
-    image: [cart],
+    image: [cart1, cart2],
   },
   {
     id: "history",
