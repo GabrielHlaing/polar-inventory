@@ -52,7 +52,7 @@ export default function UpgradeBar() {
           bottom: 62, // navbar height
           height: 38,
           background:
-            "linear-gradient(90deg, #ffd388 0%, #f2b118 50%, #f5c36a 100%)",
+            "linear-gradient(90deg, #ffd388 0%, #f2b118 50%, #ffd388 100%)",
           color: "#2a1f00",
           fontSize: "0.78rem",
           fontWeight: 600,

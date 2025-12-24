@@ -62,7 +62,7 @@ export default function ExpiryWarningBar({ daysRemaining }) {
       >
         <BsClockHistory className="me-2" />
         Premium expires in {daysRemaining} day
-        {daysRemaining > 1 ? "s" : ""} • Tap to renew
+        {daysRemaining > 1 ? "s" : ""} • Tap to see expiry details
       </div>
     </>
   );

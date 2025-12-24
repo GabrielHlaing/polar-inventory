@@ -39,9 +39,7 @@ const contactMethods = [
     label: "Messenger",
     color: "#1877f2",
     icon: FaFacebookMessenger,
-    items: [
-      { label: "Polar Inventory", href: "https://m.me/your_facebook_page" },
-    ],
+    items: [{ label: "Polar Inventory", href: "https://m.me/polarInventory" }],
   },
 ];
 
