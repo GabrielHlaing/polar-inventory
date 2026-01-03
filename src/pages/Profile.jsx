@@ -55,7 +55,47 @@ export default function Profile() {
     }
   };
 
-  if (!profile) return <p className="p-4 text-muted">Loading profile...</p>;
+  function ProfileLoading() {
+    return (
+      <div className="container py-5" style={{ maxWidth: 520 }}>
+        <Card className="border-0 shadow-sm mb-4 overflow-hidden">
+          <div
+            className="placeholder-glow p-4"
+            style={{
+              animation: "fadeIn .4s ease",
+            }}
+          >
+            <div className="d-flex justify-content-between mb-3">
+              <span className="placeholder col-5 rounded"></span>
+              <span className="placeholder col-3 rounded"></span>
+            </div>
+
+            <div className="placeholder col-8 mb-2 rounded"></div>
+            <div className="placeholder col-6 rounded"></div>
+          </div>
+        </Card>
+
+        <Card className="border-0 shadow-sm">
+          <Card.Body>
+            <div className="placeholder-glow">
+              <div className="placeholder col-4 mb-3 rounded"></div>
+
+              <div className="placeholder col-12 mb-3 rounded"></div>
+              <div className="placeholder col-12 mb-3 rounded"></div>
+              <div className="placeholder col-12 mb-4 rounded"></div>
+
+              <div className="d-flex gap-2">
+                <span className="placeholder col-5 rounded-pill"></span>
+                <span className="placeholder col-3 rounded-pill"></span>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!profile) return <ProfileLoading />;
 
   /* ---------- visual helpers ---------- */
   const PremiumCard = ({ children }) => (
@@ -94,7 +134,13 @@ export default function Profile() {
     );
 
   return (
-    <div className="container py-4" style={{ maxWidth: 520, marginBottom: 80 }}>
+    <div
+      className="container py-4"
+      style={{
+        maxWidth: 520,
+        marginBottom: 80,
+      }}
+    >
       <Header />
       <Navbar />
       <h1 className="fw-bold mb-4">Profile</h1>

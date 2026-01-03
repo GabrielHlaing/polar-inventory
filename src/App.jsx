@@ -29,6 +29,7 @@ import { SyncProvider } from "./contexts/SyncContext";
 import DeviceEnforcer from "./components/DeviceEnforcer";
 import FAQs from "./static pages/FAQs";
 import NotFound from "./static pages/NotFound";
+import AdminUserDetail from "./pages/AdminUserDetail";
 
 export default function App() {
   console.log(">>> App mounted <<<");
@@ -148,6 +149,15 @@ export default function App() {
                           element={
                             <AdminRoute>
                               <AdminPanel />
+                            </AdminRoute>
+                          }
+                        />
+
+                        <Route
+                          path="/admin/:id"
+                          element={
+                            <AdminRoute>
+                              <AdminUserDetail />
                             </AdminRoute>
                           }
                         />
