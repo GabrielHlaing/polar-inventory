@@ -114,35 +114,6 @@ export default function History() {
     />
   );
 
-  /* ---------- month selector ---------- */
-  const MonthSelector = () => (
-    <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
-      <Form.Select
-        value={month}
-        onChange={(e) => setMonth(Number(e.target.value))}
-        style={{ maxWidth: 160 }}
-      >
-        {Array.from({ length: 12 }).map((_, i) => (
-          <option key={i} value={i + 1}>
-            {new Date(0, i).toLocaleString("default", { month: "long" })}
-          </option>
-        ))}
-      </Form.Select>
-
-      <Form.Control
-        type="number"
-        value={year}
-        onChange={(e) => setYear(Number(e.target.value))}
-        style={{ maxWidth: 100 }}
-      />
-
-      <Badge bg="secondary" className="ms-auto">
-        {filteredInvoices.length} invoice
-        {filteredInvoices.length !== 1 ? "s" : ""}
-      </Badge>
-    </div>
-  );
-
   /* ---------- filter pills ---------- */
   const FilterPills = () => (
     <div className="d-flex flex-wrap gap-2 mb-3">
@@ -212,7 +183,33 @@ export default function History() {
     <div className="container py-3" style={{ marginBottom: 80 }}>
       <FabBack toHome />
       <h1 className="fw-bold mb-4">History</h1>
-      <MonthSelector />
+
+      <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <Form.Select
+          value={month}
+          onChange={(e) => setMonth(Number(e.target.value))}
+          style={{ maxWidth: 160 }}
+        >
+          {Array.from({ length: 12 }).map((_, i) => (
+            <option key={i} value={i + 1}>
+              {new Date(0, i).toLocaleString("default", { month: "long" })}
+            </option>
+          ))}
+        </Form.Select>
+
+        <Form.Control
+          type="number"
+          value={year}
+          onChange={(e) => setYear(Number(e.target.value))}
+          style={{ maxWidth: 100 }}
+        />
+
+        <Badge bg="secondary" className="ms-auto">
+          {filteredInvoices.length} invoice
+          {filteredInvoices.length !== 1 ? "s" : ""}
+        </Badge>
+      </div>
+
       <FilterPills />
       <SummaryCards />
 
