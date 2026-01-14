@@ -19,9 +19,11 @@ import {
   BsClockHistory,
   BsPlusLg,
   BsPerson,
+  BsCreditCard,
 } from "react-icons/bs";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
+import { PiMoneyWavy } from "react-icons/pi";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -80,9 +82,9 @@ export default function Home() {
             <Button
               variant={isPremium ? "outline-dark" : "outline-secondary"}
               className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-2"
-              onClick={() => navigate("/profile")}
+              onClick={() => navigate("/expenses")}
             >
-              <BsPerson /> Profile
+              <BsCreditCard /> Expenses
             </Button>
           </Col>
           <Col xs={6}>

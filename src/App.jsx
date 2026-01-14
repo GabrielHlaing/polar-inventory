@@ -30,6 +30,7 @@ import DeviceEnforcer from "./components/DeviceEnforcer";
 import FAQs from "./static pages/FAQs";
 import NotFound from "./static pages/NotFound";
 import AdminUserDetail from "./pages/AdminUserDetail";
+import Expenses from "./pages/Expenses";
 
 export default function App() {
   console.log(">>> App mounted <<<");
@@ -142,6 +143,16 @@ export default function App() {
                             </Protect>
                           }
                         />
+
+                        <Route
+                          path="/expenses"
+                          element={
+                            <Protect>
+                              <Expenses />
+                            </Protect>
+                          }
+                        />
+
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route
