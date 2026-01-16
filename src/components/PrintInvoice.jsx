@@ -201,7 +201,7 @@ export default function PrintInvoice() {
   const isPurchase = invoice.type === "purchase";
   const customer = invoice.customer;
   const getPrice = (item) =>
-    isPurchase ? item.purchase_price : item.sale_price;
+    isPurchase ? item.purchase_price || 0 : item.sale_price || 0;
   const calcTotal = (item) => item.qty_change * getPrice(item);
   const grandTotal = items.reduce((s, i) => s + calcTotal(i), 0);
 
