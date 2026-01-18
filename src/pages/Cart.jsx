@@ -45,12 +45,13 @@ export default function CartPage() {
   const [processing, setProcessing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmResolver, setConfirmResolver] = useState(null);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   useEffect(() => setCartState(cart), [cart]);
 
   const handleChange = (id, field, value) =>
     setCartState((p) =>
-      p.map((i) => (i.id === id ? { ...i, [field]: value } : i))
+      p.map((i) => (i.id === id ? { ...i, [field]: value } : i)),
     );
 
   const getMaxQty = (cartItem) => {
@@ -71,7 +72,7 @@ export default function CartPage() {
           ...i,
           qty: Math.min(Math.max(1, base + delta), max),
         };
-      })
+      }),
     );
 
   const askConfirm = (message) =>
@@ -177,47 +178,98 @@ export default function CartPage() {
   /* ---------- empty cart ---------- */
   if (cart.length === 0)
     return (
-      <div className="container py-3 text-center">
-        <Card className="border-0 shadow-sm d-inline-block px-4 py-5">
-          <Card.Body className="text-muted">Your cart is empty.</Card.Body>
-          <Button className="rounded-pill px-4" onClick={() => navigate(-1)}>
-            Go Back
-          </Button>
+      <div className="d-flex justify-content-center align-items-center vh-100 text-center">
+        <Card className="border-0 shadow-sm px-5 py-5 empty-cart-card">
+          <div className="empty-cart-icon mb-3">🛒</div>
+
+          <Card.Body className="p-0">
+            <div className="fw-semibold mb-1">Your cart is empty</div>
+            <div className="text-muted small mb-3">
+              Add items to start a sale or purchase
+            </div>
+
+            <Button
+              className="rounded-pill px-4"
+              variant="primary"
+              onClick={() => navigate(-1)}
+            >
+              Go Back
+            </Button>
+          </Card.Body>
         </Card>
+
+        {/* inline styles to keep this self-contained */}
+        <style>{`
+        .empty-cart-card {
+          animation: fadeUp 0.4s ease-out;
+        }
+
+        .empty-cart-icon {
+          font-size: 48px;
+          animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
       </div>
     );
 
+  /* ----------  HELPER  ---------- */
+  const customerFilled = customer.name || customer.phone || customer.address;
+
+  /* ----------  RETURN  (reshuffled colours only)  ---------- */
   return (
     <div className="container py-4" style={{ marginBottom: 80 }}>
       <FabBack />
+
+      {/* header bar */}
       <Row className="align-items-center mb-3">
         <Col>
-          <h3 className="fw-bold mb-0">
-            Cart - {type === "purchase" ? "Purchase" : "Sale"}
+          <h3 className="fw-bold mb-0 text-dark">
+            Cart ‑ {type === "purchase" ? "Purchase" : "Sale"}
           </h3>
         </Col>
         <Col xs="auto">
-          <Badge bg="secondary">{cartState.length} items</Badge>
+          <Badge bg="primary" pill>
+            {cartState.length} items
+          </Badge>
         </Col>
       </Row>
 
       {/* invoice & date */}
       <Card
-        className="border-1 shadow-sm mb-3"
-        style={{ backgroundColor: "#F0F8FF" }}
+        className="border-0 shadow-sm mb-3"
+        style={{ background: "#efefef" }}
       >
         <Card.Body>
           <Row className="g-2">
             <Col md={6}>
-              <Form.Label className="small mb-1">Invoice #</Form.Label>
+              <Form.Label className="small text-muted mb-1">
+                Invoice #
+              </Form.Label>
               <Form.Control
                 value={invoice}
                 onChange={(e) => setInvoice(e.target.value)}
-                placeholder="eg. INV-001"
+                placeholder="e.g. INV-01"
               />
             </Col>
             <Col md={6}>
-              <Form.Label className="small mb-1">Date</Form.Label>
+              <Form.Label className="small text-muted mb-1">Date</Form.Label>
               <Form.Control
                 type="date"
                 value={date}
@@ -228,50 +280,35 @@ export default function CartPage() {
         </Card.Body>
       </Card>
 
-      {/* customer (optional) */}
+      {/* customer bar */}
       <Card
-        className="border-1 shadow-sm mb-3"
-        style={{ backgroundColor: "#e1eef9ff" }}
+        className="border-0 shadow-sm mb-3"
+        style={{ background: "#efefef" }}
       >
-        <Card.Header className="bg-transparent fw-semibold">
-          Customer (optional)
-        </Card.Header>
-        <Card.Body style={{ backgroundColor: "#F0F8FF" }}>
-          <Row className="row-cols-1 row-cols-sm-2 g-2">
-            <Col>
-              <Form.Label className="small mb-1">Name</Form.Label>
-              <Form.Control
-                placeholder="Customer name"
-                value={customer.name}
-                onChange={(e) => updateCustomer("name", e.target.value)}
-              />
-            </Col>
-            <Col>
-              <Form.Label className="small mb-1">Phone</Form.Label>
-              <Form.Control
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9+ ]*"
-                placeholder="09xxxxxxxx"
-                value={customer.phone}
-                onChange={(e) => updateCustomer("phone", e.target.value)}
-              />
-            </Col>
-            <Col xs={12}>
-              <Form.Label className="small mb-1">Address</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                placeholder="Optional address"
-                value={customer.address}
-                onChange={(e) => updateCustomer("address", e.target.value)}
-              />
-            </Col>
-          </Row>
+        <Card.Body className="d-flex align-items-center justify-content-between py-2">
+          <div className="d-flex align-items-center gap-3">
+            <span className="fw-semibold small text-muted">
+              {type === "sale" ? "Customer" : "Supplier"}:
+            </span>
+            {customerFilled ? (
+              <span className="small text-dark">
+                {customer.name || "—"} {customer.phone && `· ${customer.phone}`}
+              </span>
+            ) : (
+              <span className="small text-muted">Not added</span>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline-dark"
+            onClick={() => setShowCustomerModal(true)}
+          >
+            {customerFilled ? "Edit" : "Add"}
+          </Button>
         </Card.Body>
       </Card>
 
-      {/* type toggle + clear */}
+      {/* type + clear */}
       <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <ButtonGroup>
           <Button
@@ -288,18 +325,14 @@ export default function CartPage() {
           </Button>
         </ButtonGroup>
         <Button size="sm" variant="outline-danger" onClick={clearCart}>
-          <FaTrash /> Clear Cart
+          <FaTrash className="me-1" /> Clear Cart
         </Button>
       </div>
 
-      {/* mobile cards - side-by-side inputs */}
-      <div className="d-md-none">
+      {/* -------  MOBILE CARDS  ------- */}
+      <div className="d-lg-none">
         {cartState.map((c) => (
-          <Card
-            className="mb-3 border-1 shadow-sm"
-            style={{ backgroundColor: "#F0F8FF" }}
-            key={c.id}
-          >
+          <Card className="mb-3 border-1 shadow-sm" key={c.id}>
             <Card.Body>
               <div className="d-flex justify-content-between align-items-start mb-2">
                 <div className="fw-bold text-truncate">{c.name}</div>
@@ -308,7 +341,7 @@ export default function CartPage() {
                   variant="outline-danger"
                   onClick={() => removeFromCart(c.id)}
                 >
-                  <FaTrash />
+                  x
                 </Button>
               </div>
 
@@ -331,7 +364,7 @@ export default function CartPage() {
                     handleChange(
                       c.id,
                       "qty",
-                      e.target.value === "" ? "" : e.target.value
+                      e.target.value === "" ? "" : e.target.value,
                     )
                   }
                   onBlur={(e) => {
@@ -361,10 +394,12 @@ export default function CartPage() {
                 {type === "purchase" && (
                   <>
                     <Col xs={6}>
-                      <Form.Label className="small mb-1">Purchase</Form.Label>
+                      <Form.Label className="small text-muted mb-1">
+                        Purchase
+                      </Form.Label>
                       <Form.Control
                         type="number"
-                        step="0.01"
+                        step="100"
                         value={c.purchase_price}
                         onChange={(e) =>
                           handleChange(c.id, "purchase_price", e.target.value)
@@ -372,10 +407,12 @@ export default function CartPage() {
                       />
                     </Col>
                     <Col xs={6}>
-                      <Form.Label className="small mb-1">Sale</Form.Label>
+                      <Form.Label className="small text-muted mb-1">
+                        Sale
+                      </Form.Label>
                       <Form.Control
                         type="number"
-                        step="0.01"
+                        step="100"
                         value={c.sale_price}
                         onChange={(e) =>
                           handleChange(c.id, "sale_price", e.target.value)
@@ -383,7 +420,9 @@ export default function CartPage() {
                       />
                     </Col>
                     <Col xs={6}>
-                      <Form.Label className="small mb-1">Mfg</Form.Label>
+                      <Form.Label className="small text-muted mb-1">
+                        Mfg
+                      </Form.Label>
                       <Form.Control
                         type="date"
                         value={c.mfg_date || ""}
@@ -393,7 +432,9 @@ export default function CartPage() {
                       />
                     </Col>
                     <Col xs={6}>
-                      <Form.Label className="small mb-1">Exp</Form.Label>
+                      <Form.Label className="small text-muted mb-1">
+                        Exp
+                      </Form.Label>
                       <Form.Control
                         type="date"
                         value={c.exp_date || ""}
@@ -406,10 +447,12 @@ export default function CartPage() {
                 )}
                 {type === "sale" && (
                   <Col xs={12}>
-                    <Form.Label className="small mb-1">Sale Price</Form.Label>
+                    <Form.Label className="small text-muted mb-1">
+                      Sale Price
+                    </Form.Label>
                     <Form.Control
                       type="number"
-                      step="0.01"
+                      step="100"
                       value={c.sale_price}
                       onChange={(e) =>
                         handleChange(c.id, "sale_price", e.target.value)
@@ -424,10 +467,10 @@ export default function CartPage() {
       </div>
 
       {/* desktop table */}
-      <div className="d-none d-md-block table-responsive mb-4">
-        <Table striped bordered hover className="align-middle">
+      <div className="d-none d-lg-block table-responsive mb-4">
+        <Table bordered hover className="align-middle">
           <thead>
-            <tr>
+            <tr className="text-center">
               <th>Name</th>
               <th>Qty</th>
               {type === "purchase" && <th>Purchase Price</th>}
@@ -461,7 +504,7 @@ export default function CartPage() {
                         handleChange(
                           c.id,
                           "qty",
-                          e.target.value === "" ? "" : e.target.value
+                          e.target.value === "" ? "" : e.target.value,
                         )
                       }
                       onBlur={(e) => {
@@ -492,7 +535,7 @@ export default function CartPage() {
                     <td>
                       <Form.Control
                         type="number"
-                        step="0.01"
+                        step="100"
                         value={c.purchase_price}
                         onChange={(e) =>
                           handleChange(c.id, "purchase_price", e.target.value)
@@ -502,7 +545,7 @@ export default function CartPage() {
                     <td>
                       <Form.Control
                         type="number"
-                        step="0.01"
+                        step="100"
                         value={c.sale_price}
                         onChange={(e) =>
                           handleChange(c.id, "sale_price", e.target.value)
@@ -533,7 +576,7 @@ export default function CartPage() {
                   <td>
                     <Form.Control
                       type="number"
-                      step="0.01"
+                      step="100"
                       value={c.sale_price}
                       onChange={(e) =>
                         handleChange(c.id, "sale_price", e.target.value)
@@ -556,11 +599,13 @@ export default function CartPage() {
         </Table>
       </div>
 
-      {/* total + checkout */}
+      {/* -------  TOTAL + CHECKOUT  ------- */}
       <div className="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
-        <div className="fw-bold fs-5">Total: {total.toFixed(2)} Ks</div>
+        <div className="fs-5 fw-semibold">
+          Total <span className="text-muted">·</span> {total.toFixed(2)} Ks
+        </div>
         <Button
-          variant="success"
+          variant="dark"
           onClick={handleCheckout}
           disabled={processing || !isPremium}
         >
@@ -574,14 +619,77 @@ export default function CartPage() {
           )}
         </Button>
       </div>
-
       {!isPremium && (
         <div className="text-danger mt-2">
           Checkout is only available for premium users.
         </div>
       )}
 
-      {/* Confirm checkout modal */}
+      {/* -------  CUSTOMER MODAL  ------- */}
+      <Modal
+        show={showCustomerModal}
+        onHide={() => setShowCustomerModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {type === "sale" ? "Customer" : "Supplier"} (optional)
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Row className="row-cols-1 g-2">
+            <Col>
+              <Form.Label className="small text-muted mb-1">Name</Form.Label>
+              <Form.Control
+                placeholder={
+                  type === "sale" ? "Customer name" : "Supplier name"
+                }
+                value={customer.name}
+                onChange={(e) => updateCustomer("name", e.target.value)}
+              />
+            </Col>
+            <Col>
+              <Form.Label className="small text-muted mb-1">Phone</Form.Label>
+              <Form.Control
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9+ ]*"
+                placeholder="09xxxxxxxx"
+                value={customer.phone}
+                onChange={(e) => updateCustomer("phone", e.target.value)}
+              />
+            </Col>
+            <Col>
+              <Form.Label className="small text-muted mb-1">Address</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                placeholder="Enter address"
+                value={customer.address}
+                onChange={(e) => updateCustomer("address", e.target.value)}
+              />
+            </Col>
+          </Row>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setShowCustomerModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => setShowCustomerModal(false)}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* -------  CONFIRM CHECKOUT MODAL  ------- */}
       <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirm checkout</Modal.Title>

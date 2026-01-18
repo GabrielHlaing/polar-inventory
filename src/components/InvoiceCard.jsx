@@ -34,7 +34,7 @@ export default function InvoiceCard({
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    }
+    },
   );
 
   const getPrice = (item) =>
@@ -53,7 +53,7 @@ export default function InvoiceCard({
             (isPurchase
               ? Number(i.purchase_price || 0)
               : Number(i.sale_price || 0)),
-        0
+        0,
       )
     : (invoice.history || []).reduce(
         (s, i) =>
@@ -62,7 +62,7 @@ export default function InvoiceCard({
             (isPurchase
               ? Number(i.purchase_price || 0)
               : Number(i.sale_price || 0)),
-        0
+        0,
       );
 
   /* ---------- edit ---------- */
@@ -92,7 +92,7 @@ export default function InvoiceCard({
           (isPurchase
             ? Number(i.purchase_price || 0)
             : Number(i.sale_price || 0)),
-      0
+      0,
     );
 
     await onEdit({
@@ -121,7 +121,7 @@ export default function InvoiceCard({
       return {
         ...p,
         history: history.map((i) =>
-          i.id === id ? { ...i, [field]: value } : i
+          i.id === id ? { ...i, [field]: value } : i,
         ),
       };
     });
@@ -217,7 +217,9 @@ export default function InvoiceCard({
             {/* CUSTOMER */}
             <Card className="mb-3 border-0 shadow-sm">
               <Card.Body>
-                <div className="fw-semibold mb-2">Customer</div>
+                <div className="fw-semibold mb-2">
+                  {isPurchase ? "Supplier" : "Customer"}
+                </div>
                 {customer ? (
                   <div className="row small text-muted">
                     {customer.name && (
@@ -291,14 +293,14 @@ export default function InvoiceCard({
                               updateItemField(
                                 item.id,
                                 "qty_change",
-                                e.target.value === "" ? "" : e.target.value
+                                e.target.value === "" ? "" : e.target.value,
                               )
                             }
                             onBlur={(e) =>
                               updateItemField(
                                 item.id,
                                 "qty_change",
-                                Math.max(1, Number(e.target.value || 1))
+                                Math.max(1, Number(e.target.value || 1)),
                               )
                             }
                           />
@@ -319,7 +321,7 @@ export default function InvoiceCard({
                               updateItemField(
                                 item.id,
                                 isPurchase ? "purchase_price" : "sale_price",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />
