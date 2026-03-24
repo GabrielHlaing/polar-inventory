@@ -6,6 +6,7 @@ import { Modal, Button, Form, Card, Badge, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { format, parseISO } from "date-fns";
 import FabBack from "../components/FabBack";
+import ResetPasswordModal from "../components/ResetPasswordModal";
 
 export default function AdminUserDetail() {
   const { id } = useParams();
@@ -15,6 +16,7 @@ export default function AdminUserDetail() {
   const [working, setWorking] = useState(false);
 
   const [showExtend, setShowExtend] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const [pickedDate, setPickedDate] = useState("");
   const [pickedTime, setPickedTime] = useState("");
   const [computedDays, setComputedDays] = useState(0);
@@ -133,7 +135,7 @@ export default function AdminUserDetail() {
       <FabBack />
       <h1 className="fw-bold mb-4">User Details</h1>
 
-      <Card className="shadow-sm border-0" style={{ background: "#ced7e8" }}>
+      <Card className="shadow-sm border-0" style={{ background: "#eaf1fd" }}>
         <Card.Body>
           {/* Header */}
           <div className="mb-4">
@@ -241,9 +243,23 @@ export default function AdminUserDetail() {
             >
               Delete
             </Button>
+
+            <Button
+              size="sm"
+              variant="outline-warning"
+              onClick={() => setShowReset(true)}
+            >
+              Reset Password
+            </Button>
           </div>
         </Card.Body>
       </Card>
+
+      <ResetPasswordModal
+        show={showReset}
+        onClose={() => setShowReset(false)}
+        user={user}
+      />
 
       {/* ---------- Extend Modal ---------- */}
       <Modal show={showExtend} onHide={() => setShowExtend(false)} centered>
