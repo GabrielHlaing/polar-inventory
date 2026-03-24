@@ -38,7 +38,7 @@ export default function AdminPanel() {
 
   const nonAdminUsers = useMemo(
     () => users.filter((u) => !u.is_admin),
-    [users]
+    [users],
   );
 
   const sortByExpiry = (a, b) => {
@@ -52,12 +52,12 @@ export default function AdminPanel() {
 
   const premiumUsers = useMemo(
     () => nonAdminUsers.filter((u) => u.tier === "premium").sort(sortByExpiry),
-    [nonAdminUsers]
+    [nonAdminUsers],
   );
 
   const freeUsers = useMemo(
     () => nonAdminUsers.filter((u) => u.tier !== "premium").sort(sortByExpiry),
-    [nonAdminUsers]
+    [nonAdminUsers],
   );
 
   if (!isAdmin)
@@ -131,10 +131,18 @@ function UserTable({ users, onOpen }) {
           {users.map((u) => (
             <tr
               key={u.id}
+              className={u.role === "staff" ? "table-info bg-opacity-50" : ""}
               style={{ cursor: "pointer" }}
               onClick={() => onOpen(`/admin/${u.id}`)}
             >
-              <td className="text-truncate">{u.email}</td>
+              <td className="text-truncate">
+                {u.email}
+                {u.role === "staff" && (
+                  <Badge bg="secondary" text="light" className="ms-2">
+                    Staff
+                  </Badge>
+                )}
+              </td>
               <td>
                 <Badge
                   bg={u.tier === "premium" ? "warning" : "secondary"}

@@ -50,12 +50,18 @@ const FONT_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-  const { profile, updateSettings, loading, isPremium, premiumExpiresAt } =
-    useProfile();
+  const {
+    profile,
+    updateSettings,
+    loading,
+    isPremium,
+    isStaff,
+    premiumExpiresAt,
+  } = useProfile();
 
   const [saving, setSaving] = useState(false);
 
-  const disabled = !isPremium || saving;
+  const disabled = !isPremium || isStaff || saving;
 
   const [form, setForm] = useState(() => ({
     shop_name: profile?.settings?.shop_name || "",
@@ -211,6 +217,15 @@ export default function SettingsPage() {
 
     if (!isPremium) return toast.warning("Premium required");
     const res = await updateSettings(form);
+
+    // save business name
+    if (!res?.error && profile?.business_id) {
+      await supabase
+        .from("businesses")
+        .update({ name: form.shop_name || null })
+        .eq("id", profile.business_id);
+    }
+
     if (!res?.error) toast.success("Settings saved!");
     setSaving(false);
   }

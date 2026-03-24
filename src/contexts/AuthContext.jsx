@@ -43,30 +43,77 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const signup = async (email, password, name) => {
+  const signup = async (
+    email,
+    password,
+    name,
+    role = "owner",
+    inviteCode = null,
+  ) => {
+    if (!email || !password || !name) {
+      throw new Error("All fields are required");
+    }
+
+    if (role === "staff" && !inviteCode) {
+      throw new Error("Invite code required");
+    }
+
+    let businessId = null;
+
+    // Pre-check for staff
+    if (role === "staff") {
+      const { data: business, error } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("invite_code", inviteCode)
+        .single();
+
+      if (error || !business) throw new Error("Invalid invite code");
+      businessId = business.id;
+    }
+
+    // Create auth user (last step)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name, email },
-      },
+      options: { data: { name, email } },
     });
+
     if (error) throw error;
+
+    const userId = data.user.id;
 
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
+
+    if (role === "owner") {
+      businessId = userId;
+
+      const { error: bizError } = await supabase.from("businesses").insert({
+        id: userId,
+        name: null,
+        owner_id: userId,
+        created_at: new Date().toISOString(),
+      });
+
+      if (bizError) throw bizError;
+    }
 
     const { error: profError } = await supabase
       .from("profiles")
       .update({
         name,
         email,
-        tier: "premium",
-        tier_expires_at: expires.toISOString(),
+        role,
+        business_id: businessId,
+        tier: role === "owner" ? "premium" : "free",
+        device_limit: role === "owner" ? 3 : 1,
+        tier_expires_at: role === "owner" ? expires.toISOString() : null,
       })
-      .eq("id", data.user.id);
+      .eq("id", userId);
 
     if (profError) throw profError;
+
     return data;
   };
 

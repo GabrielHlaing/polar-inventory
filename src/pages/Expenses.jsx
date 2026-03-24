@@ -39,7 +39,7 @@ const ICONS = {
 const getIcon = (iconName) => ICONS[iconName] || null;
 
 export default function Expenses() {
-  const { profile, isPremium } = useProfile();
+  const { profile, businessId, isPremium, isOwner } = useProfile();
 
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -71,13 +71,13 @@ export default function Expenses() {
       supabase
         .from("expense_categories")
         .select("*")
-        .or(`user_id.is.null,user_id.eq.${profile.id}`)
+        .or(`business_id.is.null,business_id.eq.${businessId}`)
         .order("name"),
 
       supabase
         .from("expenses")
         .select("*, expense_categories(name, icon)")
-        .eq("user_id", profile.id)
+        .eq("business_id", businessId)
         .gte("created_at", start)
         .lt("created_at", end.toISOString())
         .order("created_at", { ascending: false }),
@@ -95,7 +95,7 @@ export default function Expenses() {
   /* ---------- totals ---------- */
   const total = useMemo(
     () => expenses.reduce((sum, e) => sum + Number(e.amount), 0),
-    [expenses]
+    [expenses],
   );
 
   /* ---------- add expense ---------- */
@@ -118,6 +118,7 @@ export default function Expenses() {
         .insert({
           name: newCatName,
           icon: newCatIcon,
+          business_id: businessId,
           user_id: profile.id,
         })
         .select()
@@ -127,6 +128,7 @@ export default function Expenses() {
     }
 
     await supabase.from("expenses").insert({
+      business_id: businessId,
       user_id: profile.id,
       category_id: categoryId,
       amount,
@@ -147,7 +149,12 @@ export default function Expenses() {
     if (!isPremium) return toast.warning("Premium required");
     if (!window.confirm("Delete this expense?")) return;
 
-    await supabase.from("expenses").delete().eq("id", id);
+    await supabase
+      .from("expenses")
+      .delete()
+      .eq("id", id)
+      .eq("business_id", businessId);
+
     load();
   };
 
@@ -158,7 +165,8 @@ export default function Expenses() {
     const { count } = await supabase
       .from("expenses")
       .select("id", { count: "exact", head: true })
-      .eq("category_id", categoryId);
+      .eq("category_id", categoryId)
+      .eq("business_id", businessId);
 
     if (count > 0) {
       toast.warning("Category is used in expense history");
@@ -171,7 +179,7 @@ export default function Expenses() {
       .from("expense_categories")
       .delete()
       .eq("id", categoryId)
-      .eq("user_id", profile.id);
+      .eq("business_id", businessId);
 
     toast.success("Category deleted");
     load();
@@ -182,7 +190,6 @@ export default function Expenses() {
   return (
     <div className="container py-4" style={{ maxWidth: 720, marginBottom: 80 }}>
       <FabBack />
-
       <Row className="align-items-center mb-3">
         <Col>
           <h1 className="fw-bold">Expenses</h1>
@@ -198,7 +205,6 @@ export default function Expenses() {
           />
         </Col>
       </Row>
-
       <Card
         className="border-0 shadow-sm mb-4"
         style={{ background: "linear-gradient(90deg, #e1f1ff, #ffffff)" }}
@@ -215,7 +221,6 @@ export default function Expenses() {
           </Button>
         </Card.Body>
       </Card>
-
       {loading ? (
         <p className="text-muted text-center">Loading…</p>
       ) : (
@@ -255,7 +260,7 @@ export default function Expenses() {
                   {Number(e.amount).toLocaleString()}
                 </div>
 
-                {isPremium && (
+                {isOwner && isPremium && (
                   <Button
                     size="sm"
                     variant="outline-danger"
@@ -269,37 +274,31 @@ export default function Expenses() {
           );
         })
       )}
-
       {/* ---------- add expense modal ---------- */}
       <Modal show={showAdd} onHide={() => setShowAdd(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Add Expense</Modal.Title>
         </Modal.Header>
-
         <Modal.Body>
           <Form.Group className="mb-2">
             <Form.Label>Category</Form.Label>
-
             <div className="d-flex gap-2">
               <Form.Select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">Select category…</option>
-
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </Form.Select>
-
               {isPremium &&
                 selectedCategory &&
                 (() => {
                   const cat = categories.find((c) => c.id === selectedCategory);
                   if (!cat || cat.user_id === null) return null;
-
                   return (
                     <Button
                       variant="outline-danger"
@@ -311,7 +310,6 @@ export default function Expenses() {
                 })()}
             </div>
           </Form.Group>
-
           {!selectedCategory && (
             <>
               <Form.Control
@@ -320,7 +318,6 @@ export default function Expenses() {
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
               />
-
               <div className="d-flex flex-wrap gap-2 mb-2">
                 {Object.entries(ICONS).map(([key, Icon]) => (
                   <Button
@@ -337,7 +334,6 @@ export default function Expenses() {
               </div>
             </>
           )}
-
           <Form.Control
             type="number"
             placeholder="Amount"
@@ -345,14 +341,12 @@ export default function Expenses() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-
           <Form.Control
             placeholder="Note (optional)"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
         </Modal.Body>
-
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowAdd(false)}>
             Cancel

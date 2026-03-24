@@ -22,9 +22,10 @@ export function DashboardProvider({ children }) {
   const [topItems, setTopItems] = useState([]);
   const [lastFetched, setLastFetched] = useState(null);
 
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, loading: profileLoading, businessId } = useProfile();
 
   async function fetchKpisAndSeries() {
+    if (!businessId) return;
     setLoading(true);
     try {
       const today = new Date();
@@ -81,14 +82,15 @@ export function DashboardProvider({ children }) {
       });
 
       const seriesArr = Object.values(dayMap).sort((a, b) =>
-        a.date.localeCompare(b.date)
+        a.date.localeCompare(b.date),
       );
 
       // 2) Inventory totals & low stock
       const { data: invData, error: invDataErr } = await supabase
         .from("inventory")
         .select("qty,purchase_price,sale_price")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("business_id", businessId);
 
       if (invDataErr) throw invDataErr;
 
@@ -115,8 +117,9 @@ export function DashboardProvider({ children }) {
       name,
       is_active
     )
-  `
+  `,
         )
+        .eq("business_id", businessId)
         .gte("created_at", startOfDayISO(from30))
         .lte("created_at", endOfDayISO(today))
         .eq("type", "sale");
@@ -186,7 +189,7 @@ export function DashboardProvider({ children }) {
     }
 
     fetchKpisAndSeries();
-  }, [profileLoading, profile?.id]);
+  }, [profileLoading, businessId]);
 
   const refresh = async () => {
     await fetchKpisAndSeries();

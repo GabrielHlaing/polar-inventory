@@ -11,7 +11,12 @@ export function ItemsProvider({ children }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { profile, loading: profileLoading, isPremium } = useProfile();
+  const {
+    profile,
+    loading: profileLoading,
+    isPremium,
+    businessId,
+  } = useProfile();
 
   const FREE_LIMIT = 20;
   const PREMIUM_LIMIT = 1500;
@@ -21,19 +26,21 @@ export function ItemsProvider({ children }) {
     [...arr]
       .filter((i) => typeof i.name === "string")
       .sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
       );
 
   // -------------------------
   // LOAD ITEMS
   // -------------------------
   async function loadItems() {
+    if (!businessId) return;
+
     setLoading(true);
 
     const local = await idbGetAll(STORE_NAMES.INVENTORY);
 
     const clean = local.filter(
-      (i) => typeof i.name === "string" && i.id && i.is_active !== false
+      (i) => typeof i.name === "string" && i.id && i.is_active !== false,
     );
 
     // permanently fix corrupted cache
@@ -50,6 +57,7 @@ export function ItemsProvider({ children }) {
         .from("inventory")
         .select("*")
         .eq("is_active", true)
+        .eq("business_id", businessId)
         .order("name");
 
       if (!error && data) {
@@ -74,7 +82,7 @@ export function ItemsProvider({ children }) {
     }
 
     loadItems();
-  }, [profileLoading, profile?.id]);
+  }, [profileLoading, businessId]);
 
   // -------------------------
   // ADD ITEM
@@ -88,6 +96,7 @@ export function ItemsProvider({ children }) {
     const newItem = {
       id: crypto.randomUUID(),
       ...payload,
+      business_id: businessId,
       created_at: new Date().toISOString(),
     };
 

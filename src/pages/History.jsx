@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useHistoryData } from "../contexts/HistoryContext";
+import { useProfile } from "../contexts/ProfileContext";
 import getMonthlySummary from "../components/summary";
 import InvoiceCard from "../components/InvoiceCard";
 import { useItems } from "../contexts/ItemsContext";
@@ -13,6 +14,7 @@ export default function History() {
   const { fetchInvoicesByMonth, historyCache, editInvoice, deleteInvoice } =
     useHistoryData();
   const { loadItems } = useItems();
+  const { businessId } = useProfile();
   const navigate = useNavigate();
 
   const today = new Date();
@@ -22,10 +24,10 @@ export default function History() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [processing, setProcessing] = useState(false); // double-click guard
 
-  const key = `${year}-${String(month).padStart(2, "0")}`;
+  const key = `${businessId}_${year}-${String(month).padStart(2, "0")}`;
   const rawInvoices = historyCache[key]?.invoices || [];
   const invoices = [...rawInvoices].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    (a, b) => new Date(b.created_at) - new Date(a.created_at),
   );
 
   const summary = getMonthlySummary(invoices);
@@ -37,7 +39,7 @@ export default function History() {
 
   useEffect(() => {
     fetchInvoicesByMonth(year, month);
-  }, []);
+  }, [year, month, businessId]);
 
   useEffect(() => {
     const loadExpenses = async () => {

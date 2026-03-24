@@ -1,97 +1,63 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import {
-  BsBook,
-  BsChatDots,
-  BsPlusCircle,
-  BsQuestionCircle,
-} from "react-icons/bs";
-import { BiSolidDevices } from "react-icons/bi";
+import { BsBook, BsChatDots, BsQuestionCircle } from "react-icons/bs";
 import Pricing from "../components/Pricing";
 
 export default function MoreInfo() {
   return (
     <>
-      {/* Card polish styles */}
       <style>
         {`
           .info-card {
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 14px;
           }
 
           .info-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-          }
-
-          .info-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 4px;
-            width: 100%;
-            background: var(--accent);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
           }
 
           .info-icon {
-            font-size: 1.75rem;
-            color: var(--accent);
+            font-size: 1.5rem;
           }
         `}
       </style>
 
       <div
         className="container py-4"
-        style={{
-          marginBottom: 80,
-          maxWidth: 960,
-        }}
+        style={{ maxWidth: 1000, marginBottom: 80 }}
       >
         <Header />
         <Navbar />
 
-        {/* Page header */}
-        <div className="mb-4">
-          <h1 className="fw-bold mb-1" style={{ color: "#1f3a5f" }}>
-            More Information
-          </h1>
+        {/* Header */}
+        <div className="mb-4 text-center text-md-start">
+          <h1 className="fw-bold mb-1">More Information</h1>
           <p className="text-muted">
-            Everything you need to get started and stay productive
+            Resources and support for using the system
           </p>
         </div>
 
-        {/* Cards grid */}
-        <div className="row mb-2">
+        {/* Cards */}
+        <div className="row g-3 mb-4">
           {/* Tutorial */}
-          <div className="col-12 col-md-6 mb-3">
-            <div
-              className="card info-card border-0 shadow-md h-100"
-              style={{ "--accent": "#2563eb", background: "#dfe8fdff" }}
-            >
-              <div className="card-body">
-                <div className="d-flex align-items-center gap-3 mb-3">
-                  <div className="info-icon">
-                    <BsBook />
-                  </div>
-                  <h5 className="mb-0 fw-semibold">Tutorial</h5>
+          <div className="col-12 col-md-4">
+            <div className="card info-card border-0 shadow-sm h-100">
+              <div className="card-body d-flex flex-column">
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <BsBook className="text-primary info-icon" />
+                  <h6 className="mb-0 fw-semibold">Tutorial</h6>
                 </div>
-                <p className="text-muted">
-                  Learn how to use Polar Inventory step-by-step, from setup to
-                  daily operations.
+
+                <p className="text-muted small flex-grow-1">
+                  Step-by-step guide from setup to daily usage.
                 </p>
+
                 <Link
                   to="/tutorial"
-                  className="btn btn-sm fw-medium"
-                  style={{
-                    background: "#2563eb",
-                    color: "#fff",
-                    borderRadius: 10,
-                    border: "none",
-                  }}
+                  className="btn btn-sm btn-outline-primary mt-auto"
                 >
                   View Tutorial
                 </Link>
@@ -100,31 +66,21 @@ export default function MoreInfo() {
           </div>
 
           {/* Contact */}
-          <div className="col-12 col-md-6 mb-3">
-            <div
-              className="card info-card border-0 shadow-md h-100"
-              style={{ "--accent": "#128410ff", background: "#e4f9e4ff" }}
-            >
-              <div className="card-body">
-                <div className="d-flex align-items-center gap-3 mb-3">
-                  <div className="info-icon">
-                    <BsChatDots />
-                  </div>
-                  <h5 className="mb-0 fw-semibold">Contact</h5>
+          <div className="col-12 col-md-4">
+            <div className="card info-card border-0 shadow-sm h-100">
+              <div className="card-body d-flex flex-column">
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <BsChatDots className="text-success info-icon" />
+                  <h6 className="mb-0 fw-semibold">Contact</h6>
                 </div>
-                <p className="text-muted">
-                  Wanna extend Premium Time-limit (or) Device Limit? Feel free
-                  to contact us!
+
+                <p className="text-muted small flex-grow-1">
+                  Reach out for upgrades, limits, or support.
                 </p>
+
                 <Link
                   to="/contact"
-                  className="btn btn-sm fw-medium"
-                  style={{
-                    background: "#128410ff",
-                    color: "#fff",
-                    borderRadius: 10,
-                    border: "none",
-                  }}
+                  className="btn btn-sm btn-outline-success mt-auto"
                 >
                   Contact Us
                 </Link>
@@ -133,31 +89,21 @@ export default function MoreInfo() {
           </div>
 
           {/* FAQs */}
-          <div className="col-12 col-md-6 mb-3">
-            <div
-              className="card info-card border-0 shadow-md h-100"
-              style={{ "--accent": "#ad2516ff", background: "#feeeedff" }}
-            >
-              <div className="card-body">
-                <div className="d-flex align-items-center gap-3 mb-3">
-                  <div className="info-icon">
-                    <BsQuestionCircle />
-                  </div>
-                  <h5 className="mb-0 fw-semibold">FAQs</h5>
+          <div className="col-12 col-md-4">
+            <div className="card info-card border-0 shadow-sm h-100">
+              <div className="card-body d-flex flex-column">
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <BsQuestionCircle className="text-danger info-icon" />
+                  <h6 className="mb-0 fw-semibold">FAQs</h6>
                 </div>
-                <p className="text-muted">
-                  Find quick answers to common questions about features, trials,
-                  and data safety.
+
+                <p className="text-muted small flex-grow-1">
+                  Quick answers about features, trials, and usage.
                 </p>
+
                 <Link
                   to="/faqs"
-                  className="btn btn-sm fw-medium"
-                  style={{
-                    background: "#ad2516ff",
-                    color: "#fff",
-                    borderRadius: 10,
-                    border: "none",
-                  }}
+                  className="btn btn-sm btn-outline-danger mt-auto"
                 >
                   View FAQs
                 </Link>
@@ -166,9 +112,10 @@ export default function MoreInfo() {
           </div>
         </div>
 
-        <div className="bg-secondary" style={{ height: "5px" }}></div>
+        {/* Divider */}
+        <hr className="my-4" />
 
-        {/* Pricing Section */}
+        {/* Pricing */}
         <Pricing />
       </div>
     </>

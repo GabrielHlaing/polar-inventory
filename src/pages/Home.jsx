@@ -14,21 +14,19 @@ import {
 } from "recharts";
 import { Card, Badge, Button, Row, Col } from "react-bootstrap";
 import {
-  BsCart4,
   BsBoxSeam,
   BsClockHistory,
   BsPlusLg,
-  BsPerson,
   BsCreditCard,
+  BsPeople,
 } from "react-icons/bs";
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import { PiMoneyWavy } from "react-icons/pi";
 
 export default function Home() {
   const navigate = useNavigate();
   const { kpis, series, topItems, refresh, lastFetched } = useDashboard();
-  const { profile } = useProfile();
+  const { profile, isOwner, isStaff } = useProfile();
   const isPremium = profile?.tier === "premium";
 
   /* ---------- visual helpers ---------- */
@@ -57,23 +55,35 @@ export default function Home() {
     <Card
       className="mb-4 border-0 pb-2"
       style={
-        isPremium
+        isStaff && isPremium
           ? {
-              background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
-              boxShadow: "0 0 20px rgba(253, 203, 110, .5)",
-              color: "#744210",
+              background: "linear-gradient(135deg, #d6e2f4 0%, #93c5fd 100%)",
+              boxShadow: "0 0 20px rgba(59,130,246,.4)",
+              color: "#1e3a8a",
             }
-          : { background: "#f5f5f5", color: "#6c757d" }
+          : isPremium
+            ? {
+                background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
+                boxShadow: "0 0 20px rgba(253, 203, 110, .5)",
+                color: "#744210",
+              }
+            : { background: "#f5f5f5", color: "#6c757d" }
       }
     >
       <Card.Body>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <span className="fw-bold">Quick Navigator</span>
           <Badge
-            bg={isPremium ? "warning" : "secondary"}
-            text={isPremium ? "dark" : ""}
+            bg={
+              isStaff && isPremium
+                ? "primary"
+                : isPremium
+                  ? "warning"
+                  : "secondary"
+            }
+            text={isStaff ? "light" : isPremium ? "dark" : ""}
           >
-            {isPremium ? "★ Premium" : "Free"}
+            {isStaff ? "Staff" : isPremium ? "★ Premium" : "Free"}
           </Badge>
         </div>
 
@@ -105,15 +115,32 @@ export default function Home() {
               <BsClockHistory /> History
             </Button>
           </Col>
-          <Col xs={6}>
-            <Button
-              variant={isPremium ? "outline-dark" : "outline-secondary"}
-              className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-2"
-              onClick={() => navigate("/more-info")}
-            >
-              <BsPlusLg /> More
-            </Button>
-          </Col>
+
+          {isOwner ? (
+            <>
+              <Col xs={6}>
+                <Button
+                  variant={isPremium ? "outline-dark" : "outline-secondary"}
+                  className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => navigate("/staff")}
+                >
+                  <BsPeople /> Staff
+                </Button>
+              </Col>
+            </>
+          ) : (
+            <>
+              <Col xs={6}>
+                <Button
+                  variant={isPremium ? "outline-dark" : "outline-secondary"}
+                  className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => navigate("/join")}
+                >
+                  <BsPlusLg /> Business
+                </Button>
+              </Col>
+            </>
+          )}
         </Row>
       </Card.Body>
     </Card>

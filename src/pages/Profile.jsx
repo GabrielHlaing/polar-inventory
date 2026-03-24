@@ -9,7 +9,7 @@ import Header from "../components/Header";
 import { Link } from "react-router-dom";
 
 export default function Profile() {
-  const { profile, premiumExpiresAt, isAdmin } = useProfile();
+  const { profile, premiumExpiresAt, isAdmin, isStaff } = useProfile();
   const { logout } = useAuth();
 
   const [oldPassword, setOldPassword] = useState("");
@@ -98,40 +98,66 @@ export default function Profile() {
   if (!profile) return <ProfileLoading />;
 
   /* ---------- visual helpers ---------- */
-  const PremiumCard = ({ children }) => (
-    <Card
-      className="border-0 shadow-lg mb-4"
-      style={{
+  const TierCard = ({ children }) => {
+    let style = {};
+    if (isStaff && isPremium) {
+      style = {
+        background: "linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%)",
+        boxShadow: "0 0 20px rgba(59,130,246,.4)",
+        color: "#1e3a8a",
+      };
+    } else if (isPremium) {
+      style = {
         background: "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)",
         boxShadow: "0 0 20px rgba(253, 203, 110, .6)",
         color: "#744210",
-      }}
-    >
-      <Card.Body>{children}</Card.Body>
-    </Card>
-  );
+      };
+    } else {
+      style = {
+        background: "#f5f5f5",
+        color: "#6c757d",
+      };
+    }
 
-  const FreeCard = ({ children }) => (
-    <Card className="bg-light text-muted border-0 shadow-sm mb-4">
-      <Card.Body>{children}</Card.Body>
-    </Card>
-  );
+    return (
+      <Card className="border-0 shadow-lg mb-4" style={style}>
+        <Card.Body>{children}</Card.Body>
+      </Card>
+    );
+  };
 
-  const TierBadge = () =>
-    isPremium ? (
+  const TierBadge = () => {
+    if (isStaff && isPremium)
+      return (
+        <Badge
+          bg="primary"
+          className="ms-auto"
+          style={{ fontSize: "0.75rem", letterSpacing: ".5px" }}
+        >
+          Staff
+        </Badge>
+      );
+    if (isPremium)
+      return (
+        <Badge
+          bg="warning"
+          text="dark"
+          className="ms-auto"
+          style={{ fontSize: "0.75rem", letterSpacing: ".5px" }}
+        >
+          ★ PREMIUM
+        </Badge>
+      );
+    return (
       <Badge
-        bg="warning"
-        text="dark"
+        bg="secondary"
         className="ms-auto"
         style={{ fontSize: "0.75rem", letterSpacing: ".5px" }}
       >
-        ★ PREMIUM
-      </Badge>
-    ) : (
-      <Badge bg="secondary" className="ms-auto">
         Free
       </Badge>
     );
+  };
 
   return (
     <div
@@ -146,16 +172,16 @@ export default function Profile() {
       <h1 className="fw-bold mb-4">Profile</h1>
 
       {/* ---- info card ---- */}
-      {isPremium ? (
-        <PremiumCard>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span className="fw-bold">{profile.name}</span>
-            <TierBadge />
-          </div>
+      <TierCard>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <span className="fw-bold">{profile.name}</span>
+          <TierBadge />
+        </div>
+        <div className="small mb-1">
+          Email: <span className="fw-bold">{profile.email}</span>
+        </div>
+        {isPremium && (
           <div className="small mb-1">
-            Email: <span className="fw-bold">{profile.email}</span>
-          </div>
-          <div className="small">
             Expires at:{" "}
             <span className="fw-bold">
               {premiumExpiresAt
@@ -170,20 +196,14 @@ export default function Profile() {
                 : "—"}
             </span>
           </div>
+        )}
+        {profile.device_limit && (
           <div className="small mb-1">
             Device Limit:{" "}
             <span className="fw-bold">{profile.device_limit}</span>
           </div>
-        </PremiumCard>
-      ) : (
-        <FreeCard>
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span>{profile.name}</span>
-            <TierBadge />
-          </div>
-          <div className="small">Email: {profile.email}</div>
-        </FreeCard>
-      )}
+        )}
+      </TierCard>
 
       {/* ---- password change ---- */}
       <Card className="border-0 shadow-sm">

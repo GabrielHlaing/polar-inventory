@@ -31,6 +31,8 @@ import FAQs from "./static pages/FAQs";
 import NotFound from "./static pages/NotFound";
 import AdminUserDetail from "./pages/AdminUserDetail";
 import Expenses from "./pages/Expenses";
+import StaffManagement from "./pages/StaffManagement";
+import JoinBusiness from "./pages/JoinBusiness";
 
 export default function App() {
   console.log(">>> App mounted <<<");
@@ -149,6 +151,24 @@ export default function App() {
                           element={
                             <Protect>
                               <Expenses />
+                            </Protect>
+                          }
+                        />
+
+                        <Route
+                          path="/staff"
+                          element={
+                            <Protect>
+                              <StaffManagement />
+                            </Protect>
+                          }
+                        />
+
+                        <Route
+                          path="/join"
+                          element={
+                            <Protect>
+                              <JoinBusiness />
                             </Protect>
                           }
                         />

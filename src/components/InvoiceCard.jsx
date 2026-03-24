@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, Badge, Button, Form, Modal } from "react-bootstrap";
-import { toast } from "react-toastify";
 import { FaUser, FaPhoneAlt, FaAddressBook } from "react-icons/fa";
+import { useProfile } from "../contexts/ProfileContext";
 
 export default function InvoiceCard({
   invoice,
@@ -19,6 +19,8 @@ export default function InvoiceCard({
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { isOwner } = useProfile();
 
   const data = isEditing ? editData : invoice;
   const items = data.history || [];
@@ -170,26 +172,31 @@ export default function InvoiceCard({
                   >
                     Print
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline-primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStartEdit();
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline-danger"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteModal(true);
-                    }}
-                  >
-                    Delete
-                  </Button>
+
+                  {isOwner && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartEdit();
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  )}
                 </>
               ) : (
                 <>

@@ -10,8 +10,18 @@ import {
   Col,
   Badge,
   Modal,
+  Container,
 } from "react-bootstrap";
-import { FaTrash } from "react-icons/fa";
+import {
+  FaTrash,
+  FaShoppingCart,
+  FaArrowLeft,
+  FaMinus,
+  FaPlus,
+  FaUser,
+  FaCalendarAlt,
+  FaReceipt,
+} from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
 import { useItems } from "../contexts/ItemsContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -29,7 +39,7 @@ export default function CartPage() {
   const { cart, clearCart, removeFromCart } = useCart();
   const { items, updateItem, loadItems } = useItems();
   const { updateInvoiceInCache } = useHistoryData();
-  const { isPremium } = useProfile();
+  const { isPremium, businessId } = useProfile();
   const { fetchKpisAndSeries } = useDashboard();
   const { processSyncQueue } = useSync();
 
@@ -64,10 +74,8 @@ export default function CartPage() {
     setCartState((p) =>
       p.map((i) => {
         if (i.id !== id) return i;
-
         const base = i.qty === "" ? 0 : Number(i.qty);
         const max = getMaxQty(i);
-
         return {
           ...i,
           qty: Math.min(Math.max(1, base + delta), max),
@@ -77,7 +85,7 @@ export default function CartPage() {
 
   const askConfirm = (message) =>
     new Promise((res) => {
-      setConfirmResolver(() => res); // store the resolve fn
+      setConfirmResolver(() => res);
       setShowConfirm(true);
     });
 
@@ -88,7 +96,6 @@ export default function CartPage() {
     return sum + i.qty * (Number(price) || 0);
   }, 0);
 
-  // To prevent negative stock
   const cartExceedsStock = () =>
     cartState.some((c) => {
       const inv = items.find((i) => i.id === c.id);
@@ -98,6 +105,7 @@ export default function CartPage() {
   /* ---------- checkout ---------- */
   const handleCheckout = async () => {
     if (processing) return;
+    if (!businessId) return;
     if (!isPremium)
       return toast.warning("Checkout is only available for premium users.");
     if (!invoice) return toast.warning("Invoice number is required.");
@@ -112,6 +120,7 @@ export default function CartPage() {
     const invoiceId = crypto.randomUUID();
     const historyRows = cartState.map((c) => ({
       id: crypto.randomUUID(),
+      business_id: businessId,
       user_id: user.id,
       inventory_id: c.id,
       qty_change: Math.max(1, Number(c.qty || 1)),
@@ -131,6 +140,7 @@ export default function CartPage() {
 
     const invoicePayload = {
       id: invoiceId,
+      business_id: businessId,
       user_id: user.id,
       total_amount: total,
       invoice_number: invoice,
@@ -178,184 +188,195 @@ export default function CartPage() {
   /* ---------- empty cart ---------- */
   if (cart.length === 0)
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100 text-center">
-        <Card className="border-0 shadow-sm px-5 py-5 empty-cart-card">
-          <div className="empty-cart-icon mb-3">🛒</div>
-
-          <Card.Body className="p-0">
-            <div className="fw-semibold mb-1">Your cart is empty</div>
-            <div className="text-muted small mb-3">
-              Add items to start a sale or purchase
+      <Container className="d-flex justify-content-center align-items-center vh-100">
+        <Card
+          className="border-0 shadow-lg text-center p-5"
+          style={{ maxWidth: 400, width: "100%" }}
+        >
+          <Card.Body>
+            <div className="mb-4">
+              <div
+                className="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3"
+                style={{ width: 100, height: 100 }}
+              >
+                <FaShoppingCart size={48} className="text-primary opacity-75" />
+              </div>
+              <h4 className="fw-bold text-dark mb-2">Your cart is empty</h4>
+              <p className="text-muted mb-4">
+                Add items to start a sale or purchase transaction
+              </p>
             </div>
-
             <Button
-              className="rounded-pill px-4"
               variant="primary"
+              className="rounded-pill px-5 fw-semibold"
               onClick={() => navigate(-1)}
             >
-              Go Back
+              <FaArrowLeft className="me-2" />
+              Continue Shopping
             </Button>
           </Card.Body>
         </Card>
-
-        {/* inline styles to keep this self-contained */}
-        <style>{`
-        .empty-cart-card {
-          animation: fadeUp 0.4s ease-out;
-        }
-
-        .empty-cart-icon {
-          font-size: 48px;
-          animation: float 2s ease-in-out infinite;
-        }
-
-        @keyframes float {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-          100% { transform: translateY(0); }
-        }
-
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-      </div>
+      </Container>
     );
 
   /* ----------  HELPER  ---------- */
   const customerFilled = customer.name || customer.phone || customer.address;
 
-  /* ----------  RETURN  (reshuffled colours only)  ---------- */
+  /* ----------  RETURN  ---------- */
   return (
-    <div className="container py-4" style={{ marginBottom: 80 }}>
+    <Container className="py-4 pb-5 mb-5">
       <FabBack />
 
-      {/* header bar */}
-      <Row className="align-items-center mb-3">
-        <Col>
-          <h3 className="fw-bold mb-0 text-dark">
-            Cart ‑ {type === "purchase" ? "Purchase" : "Sale"}
-          </h3>
-        </Col>
-        <Col xs="auto">
-          <Badge bg="primary" pill>
-            {cartState.length} items
-          </Badge>
-        </Col>
-      </Row>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold mb-1 d-flex align-items-center gap-2">
+            <FaShoppingCart className="text-primary" />
+            Cart
+            <Badge
+              bg={type === "sale" ? "success" : "warning"}
+              className="fs-6 ms-2"
+            >
+              {type === "sale" ? "Sale" : "Purchase"}
+            </Badge>
+          </h2>
+          <small className="text-muted">
+            {cartState.length} item{cartState.length !== 1 ? "s" : ""} in cart
+          </small>
+        </div>
+        <Button
+          variant="outline-danger"
+          size="sm"
+          onClick={clearCart}
+          className="d-flex align-items-center gap-2"
+        >
+          <FaTrash /> Clear
+        </Button>
+      </div>
 
-      {/* invoice & date */}
-      <Card
-        className="border-0 shadow-sm mb-3"
-        style={{ background: "#efefef" }}
-      >
-        <Card.Body>
-          <Row className="g-2">
+      {/* Invoice & Date Card */}
+      <Card className="border-0 shadow-sm mb-3 bg-light">
+        <Card.Body className="p-3">
+          <Row className="g-3">
             <Col md={6}>
-              <Form.Label className="small text-muted mb-1">
-                Invoice #
-              </Form.Label>
-              <Form.Control
-                value={invoice}
-                onChange={(e) => setInvoice(e.target.value)}
-                placeholder="e.g. INV-01"
-              />
+              <Form.Group>
+                <Form.Label className="fw-semibold small text-uppercase text-muted mb-2">
+                  <FaReceipt className="me-1" />
+                  Invoice Number
+                </Form.Label>
+                <Form.Control
+                  value={invoice}
+                  onChange={(e) => setInvoice(e.target.value)}
+                  placeholder="e.g. INV-001"
+                  className="border-0 shadow-sm"
+                />
+              </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Label className="small text-muted mb-1">Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <Form.Group>
+                <Form.Label className="fw-semibold small text-uppercase text-muted mb-2">
+                  <FaCalendarAlt className="me-1" />
+                  Date
+                </Form.Label>
+                <Form.Control
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="border-0 shadow-sm"
+                />
+              </Form.Group>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {/* customer bar */}
-      <Card
-        className="border-0 shadow-sm mb-3"
-        style={{ background: "#efefef" }}
-      >
-        <Card.Body className="d-flex align-items-center justify-content-between py-2">
+      {/* Customer Card */}
+      <Card className="border-0 shadow-sm mb-4">
+        <Card.Body className="d-flex align-items-center justify-content-between py-3">
           <div className="d-flex align-items-center gap-3">
-            <span className="fw-semibold small text-muted">
-              {type === "sale" ? "Customer" : "Supplier"}:
-            </span>
-            {customerFilled ? (
-              <span className="small text-dark">
-                {customer.name || "—"} {customer.phone && `· ${customer.phone}`}
-              </span>
-            ) : (
-              <span className="small text-muted">Not added</span>
-            )}
+            <div
+              className="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle"
+              style={{ width: 40, height: 40 }}
+            >
+              <FaUser className="text-primary" />
+            </div>
+            <div>
+              <div className="fw-semibold small text-muted text-uppercase">
+                {type === "sale" ? "Customer" : "Supplier"}
+              </div>
+              <div className="fw-medium">
+                {customerFilled ? (
+                  <span className="text-dark">
+                    {customer.name || "Unnamed"}
+                    {customer.phone && (
+                      <span className="text-muted"> · {customer.phone}</span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-muted fst-italic">
+                    Not added (optional)
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
           <Button
+            variant={customerFilled ? "outline-primary" : "primary"}
             size="sm"
-            variant="outline-dark"
             onClick={() => setShowCustomerModal(true)}
+            className="fw-semibold"
           >
             {customerFilled ? "Edit" : "Add"}
           </Button>
         </Card.Body>
       </Card>
 
-      {/* type + clear */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-        <ButtonGroup>
+      {/* Type Toggle */}
+      <div className="mb-4">
+        <ButtonGroup className="w-50 shadow-sm">
           <Button
-            variant={type === "sale" ? "primary" : "outline-primary"}
+            variant={type === "sale" ? "success" : "outline-success"}
             onClick={() => setType("sale")}
+            className="fw-semibold py-2"
           >
             Sale
           </Button>
           <Button
-            variant={type === "purchase" ? "primary" : "outline-primary"}
+            variant={type === "purchase" ? "warning" : "outline-warning"}
             onClick={() => setType("purchase")}
+            className="fw-semibold py-2"
           >
             Purchase
           </Button>
         </ButtonGroup>
-        <Button size="sm" variant="outline-danger" onClick={clearCart}>
-          <FaTrash className="me-1" /> Clear Cart
-        </Button>
       </div>
 
-      {/* -------  MOBILE CARDS  ------- */}
+      {/* Mobile Cards */}
       <div className="d-lg-none">
         {cartState.map((c) => (
-          <Card className="mb-3 border-1 shadow-sm" key={c.id}>
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-start mb-2">
-                <div className="fw-bold text-truncate">{c.name}</div>
-                <Button
-                  size="sm"
-                  variant="outline-danger"
-                  onClick={() => removeFromCart(c.id)}
-                >
-                  x
-                </Button>
-              </div>
-
-              {/* qty stepper */}
+          <Card key={c.id} className="mb-3 border-0 shadow-sm">
+            <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+              <span className="fw-bold text-truncate me-2">{c.name}</span>
+              <Button
+                variant="link"
+                className="text-danger p-0"
+                onClick={() => removeFromCart(c.id)}
+              >
+                <FaTrash />
+              </Button>
+            </Card.Header>
+            <Card.Body className="p-3">
+              {/* Quantity Stepper */}
               <div className="d-flex align-items-center gap-2 mb-3">
                 <Button
-                  size="sm"
                   variant="outline-secondary"
+                  size="sm"
                   onClick={() => changeQty(c.id, -1)}
+                  className="px-3"
                 >
-                  -
+                  <FaMinus size={12} />
                 </Button>
                 <Form.Control
-                  size="sm"
                   type="number"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -372,43 +393,94 @@ export default function CartPage() {
                     const v = Math.max(1, Number(e.target.value || 1));
                     handleChange(c.id, "qty", Math.min(v, max));
                   }}
-                  style={{ width: 70 }}
+                  className="text-center fw-bold"
+                  style={{ width: 80 }}
                 />
                 <Button
-                  size="sm"
                   variant="outline-secondary"
+                  size="sm"
                   onClick={() => changeQty(c.id, 1)}
+                  className="px-3"
                 >
-                  +
+                  <FaPlus size={12} />
                 </Button>
-
                 {type === "sale" && (
-                  <div className="small text-success fst-italic">
-                    Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
-                  </div>
+                  <Badge bg="success" className="ms-auto">
+                    Stock: {items.find((i) => i.id === c.id)?.qty ?? 0}
+                  </Badge>
                 )}
               </div>
 
-              {/* price fields - side-by-side on ≥ 360 px */}
-              <Row className="row-cols-2 g-2">
-                {type === "purchase" && (
+              {/* Price Fields */}
+              <Row className="g-2">
+                {type === "purchase" ? (
                   <>
                     <Col xs={6}>
-                      <Form.Label className="small text-muted mb-1">
-                        Purchase
-                      </Form.Label>
-                      <Form.Control
-                        type="number"
-                        step="100"
-                        value={c.purchase_price}
-                        onChange={(e) =>
-                          handleChange(c.id, "purchase_price", e.target.value)
-                        }
-                      />
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">
+                          Purchase Price
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          step="100"
+                          value={c.purchase_price}
+                          onChange={(e) =>
+                            handleChange(c.id, "purchase_price", e.target.value)
+                          }
+                          className="fw-semibold"
+                        />
+                      </Form.Group>
                     </Col>
                     <Col xs={6}>
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">
+                          Sale Price
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          step="100"
+                          value={c.sale_price}
+                          onChange={(e) =>
+                            handleChange(c.id, "sale_price", e.target.value)
+                          }
+                          className="fw-semibold"
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col xs={6}>
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">
+                          Mfg Date
+                        </Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={c.mfg_date || ""}
+                          onChange={(e) =>
+                            handleChange(c.id, "mfg_date", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col xs={6}>
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">
+                          Exp Date
+                        </Form.Label>
+                        <Form.Control
+                          type="date"
+                          value={c.exp_date || ""}
+                          onChange={(e) =>
+                            handleChange(c.id, "exp_date", e.target.value)
+                          }
+                        />
+                      </Form.Group>
+                    </Col>
+                  </>
+                ) : (
+                  <Col xs={12}>
+                    <Form.Group>
                       <Form.Label className="small text-muted mb-1">
-                        Sale
+                        Sale Price
                       </Form.Label>
                       <Form.Control
                         type="number"
@@ -417,47 +489,9 @@ export default function CartPage() {
                         onChange={(e) =>
                           handleChange(c.id, "sale_price", e.target.value)
                         }
+                        className="fw-semibold"
                       />
-                    </Col>
-                    <Col xs={6}>
-                      <Form.Label className="small text-muted mb-1">
-                        Mfg
-                      </Form.Label>
-                      <Form.Control
-                        type="date"
-                        value={c.mfg_date || ""}
-                        onChange={(e) =>
-                          handleChange(c.id, "mfg_date", e.target.value)
-                        }
-                      />
-                    </Col>
-                    <Col xs={6}>
-                      <Form.Label className="small text-muted mb-1">
-                        Exp
-                      </Form.Label>
-                      <Form.Control
-                        type="date"
-                        value={c.exp_date || ""}
-                        onChange={(e) =>
-                          handleChange(c.id, "exp_date", e.target.value)
-                        }
-                      />
-                    </Col>
-                  </>
-                )}
-                {type === "sale" && (
-                  <Col xs={12}>
-                    <Form.Label className="small text-muted mb-1">
-                      Sale Price
-                    </Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="100"
-                      value={c.sale_price}
-                      onChange={(e) =>
-                        handleChange(c.id, "sale_price", e.target.value)
-                      }
-                    />
+                    </Form.Group>
                   </Col>
                 )}
               </Row>
@@ -466,190 +500,214 @@ export default function CartPage() {
         ))}
       </div>
 
-      {/* desktop table */}
-      <div className="d-none d-lg-block table-responsive mb-4">
-        <Table bordered hover className="align-middle">
-          <thead>
-            <tr className="text-center">
-              <th>Name</th>
-              <th>Qty</th>
-              {type === "purchase" && <th>Purchase Price</th>}
-              {type === "purchase" && <th>Sale Price</th>}
-              {type === "purchase" && <th>Mfg Date</th>}
-              {type === "purchase" && <th>Exp Date</th>}
-              {type === "sale" && <th>Sale Price</th>}
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {cartState.map((c) => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>
-                  <div className="d-flex align-items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      onClick={() => changeQty(c.id, -1)}
-                    >
-                      -
-                    </Button>
-                    <Form.Control
-                      size="sm"
-                      type="number"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={c.qty ?? ""}
-                      onChange={(e) =>
-                        handleChange(
-                          c.id,
-                          "qty",
-                          e.target.value === "" ? "" : e.target.value,
-                        )
-                      }
-                      onBlur={(e) => {
-                        const max = getMaxQty(c);
-                        const v = Math.max(1, Number(e.target.value || 1));
-                        handleChange(c.id, "qty", Math.min(v, max));
-                      }}
-                      style={{ width: 70 }}
-                    />
-
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      onClick={() => changeQty(c.id, 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-
-                  {type === "sale" && (
-                    <div className="mt-1 small text-success fst-italic">
-                      Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
-                    </div>
-                  )}
-                </td>
-                {type === "purchase" && (
-                  <>
-                    <td>
+      {/* Desktop Table */}
+      <div className="d-none d-lg-block mb-4">
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <Table hover className="mb-0 align-middle">
+            <thead className="bg-light">
+              <tr>
+                <th className="ps-4">Item</th>
+                <th style={{ width: 140 }}>Quantity</th>
+                {type === "purchase" && <th>Purchase Price</th>}
+                {type === "purchase" && <th>Sale Price</th>}
+                {type === "purchase" && <th>Mfg Date</th>}
+                {type === "purchase" && <th>Exp Date</th>}
+                {type === "sale" && <th>Sale Price</th>}
+                <th className="pe-4" style={{ width: 60 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {cartState.map((c) => (
+                <tr key={c.id}>
+                  <td className="ps-4">
+                    <div className="fw-semibold">{c.name}</div>
+                  </td>
+                  <td>
+                    <div className="d-flex align-items-center gap-2">
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => changeQty(c.id, -1)}
+                      >
+                        <FaMinus size={10} />
+                      </Button>
                       <Form.Control
                         type="number"
-                        step="100"
-                        value={c.purchase_price}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        size="sm"
+                        value={c.qty ?? ""}
                         onChange={(e) =>
-                          handleChange(c.id, "purchase_price", e.target.value)
+                          handleChange(
+                            c.id,
+                            "qty",
+                            e.target.value === "" ? "" : e.target.value,
+                          )
                         }
+                        onBlur={(e) => {
+                          const max = getMaxQty(c);
+                          const v = Math.max(1, Number(e.target.value || 1));
+                          handleChange(c.id, "qty", Math.min(v, max));
+                        }}
+                        className="text-center fw-bold"
+                        style={{ width: 70 }}
                       />
-                    </td>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={() => changeQty(c.id, 1)}
+                      >
+                        <FaPlus size={10} />
+                      </Button>
+                    </div>
+                    {type === "sale" && (
+                      <small className="text-success">
+                        Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
+                      </small>
+                    )}
+                  </td>
+                  {type === "purchase" ? (
+                    <>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          step="100"
+                          size="sm"
+                          value={c.purchase_price}
+                          onChange={(e) =>
+                            handleChange(c.id, "purchase_price", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="number"
+                          step="100"
+                          size="sm"
+                          value={c.sale_price}
+                          onChange={(e) =>
+                            handleChange(c.id, "sale_price", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="date"
+                          size="sm"
+                          value={c.mfg_date || ""}
+                          onChange={(e) =>
+                            handleChange(c.id, "mfg_date", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="date"
+                          size="sm"
+                          value={c.exp_date || ""}
+                          onChange={(e) =>
+                            handleChange(c.id, "exp_date", e.target.value)
+                          }
+                        />
+                      </td>
+                    </>
+                  ) : (
                     <td>
                       <Form.Control
                         type="number"
                         step="100"
+                        size="sm"
                         value={c.sale_price}
                         onChange={(e) =>
                           handleChange(c.id, "sale_price", e.target.value)
                         }
                       />
                     </td>
-                    <td>
-                      <Form.Control
-                        type="date"
-                        value={c.mfg_date || ""}
-                        onChange={(e) =>
-                          handleChange(c.id, "mfg_date", e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="date"
-                        value={c.exp_date || ""}
-                        onChange={(e) =>
-                          handleChange(c.id, "exp_date", e.target.value)
-                        }
-                      />
-                    </td>
-                  </>
-                )}
-                {type === "sale" && (
-                  <td>
-                    <Form.Control
-                      type="number"
-                      step="100"
-                      value={c.sale_price}
-                      onChange={(e) =>
-                        handleChange(c.id, "sale_price", e.target.value)
-                      }
-                    />
+                  )}
+                  <td className="pe-4">
+                    <Button
+                      variant="link"
+                      className="text-danger p-0"
+                      onClick={() => removeFromCart(c.id)}
+                    >
+                      <FaTrash />
+                    </Button>
                   </td>
-                )}
-                <td className="text-center">
-                  <Button
-                    size="sm"
-                    variant="outline-danger"
-                    onClick={() => removeFromCart(c.id)}
-                  >
-                    <FaTrash />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card>
       </div>
 
-      {/* -------  TOTAL + CHECKOUT  ------- */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
-        <div className="fs-5 fw-semibold">
-          Total <span className="text-muted">·</span> {total.toFixed(2)} Ks
-        </div>
-        <Button
-          variant="dark"
-          onClick={handleCheckout}
-          disabled={processing || !isPremium}
-        >
-          {processing ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" />
-              Processing…
-            </>
-          ) : (
-            "Checkout"
+      {/* Total & Checkout - Fixed Bottom */}
+      <Card className="border-0 shadow-lg bottom-0 start-0 end-0 rounded-0 rounded-top">
+        <Card.Body className="py-3">
+          <div className="d-flex flex-wrap gap-3 justify-content-around align-items-center">
+            <div>
+              <small className="text-muted text-uppercase fw-semibold">
+                Total Amount
+              </small>
+              <div className="fs-3 fw-bold text-dark">
+                {total.toLocaleString()} Ks
+              </div>
+            </div>
+            <Button
+              variant="dark"
+              size="md"
+              onClick={handleCheckout}
+              disabled={processing || !isPremium}
+              className="px-5 fw-bold"
+            >
+              {processing ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" />
+                  Processing...
+                </>
+              ) : (
+                "Checkout"
+              )}
+            </Button>
+          </div>
+          {!isPremium && (
+            <div className="alert alert-warning py-2 mb-0 mt-2 small">
+              <strong>Premium Required:</strong> Checkout is only available for
+              premium users.
+            </div>
           )}
-        </Button>
-      </div>
-      {!isPremium && (
-        <div className="text-danger mt-2">
-          Checkout is only available for premium users.
-        </div>
-      )}
+        </Card.Body>
+      </Card>
 
-      {/* -------  CUSTOMER MODAL  ------- */}
+      {/* Customer Modal */}
       <Modal
         show={showCustomerModal}
         onHide={() => setShowCustomerModal(false)}
         centered
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {type === "sale" ? "Customer" : "Supplier"} (optional)
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold">
+            {type === "sale" ? "Customer" : "Supplier"} Details
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row className="row-cols-1 g-2">
-            <Col>
-              <Form.Label className="small text-muted mb-1">Name</Form.Label>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-semibold small text-muted">
+                Name
+              </Form.Label>
               <Form.Control
                 placeholder={
                   type === "sale" ? "Customer name" : "Supplier name"
                 }
                 value={customer.name}
                 onChange={(e) => updateCustomer("name", e.target.value)}
+                className="shadow-sm"
               />
-            </Col>
-            <Col>
-              <Form.Label className="small text-muted mb-1">Phone</Form.Label>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-semibold small text-muted">
+                Phone
+              </Form.Label>
               <Form.Control
                 type="tel"
                 inputMode="numeric"
@@ -657,50 +715,55 @@ export default function CartPage() {
                 placeholder="09xxxxxxxx"
                 value={customer.phone}
                 onChange={(e) => updateCustomer("phone", e.target.value)}
+                className="shadow-sm"
               />
-            </Col>
-            <Col>
-              <Form.Label className="small text-muted mb-1">Address</Form.Label>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-semibold small text-muted">
+                Address
+              </Form.Label>
               <Form.Control
                 as="textarea"
                 rows={2}
                 placeholder="Enter address"
                 value={customer.address}
                 onChange={(e) => updateCustomer("address", e.target.value)}
+                className="shadow-sm"
               />
-            </Col>
-          </Row>
+            </Form.Group>
+          </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowCustomerModal(false)}
-          >
+        <Modal.Footer className="border-0 pt-0">
+          <Button variant="light" onClick={() => setShowCustomerModal(false)}>
             Cancel
           </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => setShowCustomerModal(false)}
-          >
-            Save
+          <Button variant="primary" onClick={() => setShowCustomerModal(false)}>
+            Save Details
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* -------  CONFIRM CHECKOUT MODAL  ------- */}
-      <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm checkout</Modal.Title>
+      {/* Confirm Modal */}
+      <Modal
+        show={showConfirm}
+        onHide={() => setShowConfirm(false)}
+        centered
+        size="sm"
+      >
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="fw-bold">Confirm Checkout</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          Total: <strong>{total.toFixed(2)} Ks</strong>. Proceed?
+        <Modal.Body className="text-center py-4">
+          <div className="fs-1 mb-2">💰</div>
+          <p className="mb-0">
+            Total: <strong className="fs-4">{total.toLocaleString()} Ks</strong>
+          </p>
+          <small className="text-muted">Proceed with checkout?</small>
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="border-0 justify-content-center gap-2">
           <Button
-            variant="secondary"
-            size="sm"
+            variant="light"
+            className="px-4"
             onClick={() => {
               confirmResolver(false);
               setShowConfirm(false);
@@ -710,16 +773,16 @@ export default function CartPage() {
           </Button>
           <Button
             variant="success"
-            size="sm"
+            className="px-4 fw-bold"
             onClick={() => {
               confirmResolver(true);
               setShowConfirm(false);
             }}
           >
-            OK
+            Confirm
           </Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }

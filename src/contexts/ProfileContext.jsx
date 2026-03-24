@@ -8,6 +8,11 @@ export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const businessId = profile?.business_id || profile?.id;
+  const role = profile?.role || "owner";
+  const isOwner = role === "owner";
+  const isStaff = role === "staff";
+
   async function loadProfile() {
     setLoading(true);
 
@@ -125,6 +130,11 @@ export function ProfileProvider({ children }) {
         updateExpWarningDays,
 
         expWarningDays: profile?.settings?.exp_warning_days ?? 0,
+
+        businessId,
+        role,
+        isOwner,
+        isStaff,
 
         // Helpers
         isAdmin: profile?.is_admin === true,

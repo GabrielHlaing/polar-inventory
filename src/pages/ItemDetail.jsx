@@ -7,12 +7,14 @@ import { toast } from "react-toastify";
 import FabBack from "../components/FabBack";
 import { FaTrash } from "react-icons/fa";
 import FloatingCartButton from "../components/FloatingCartButton";
+import { useProfile } from "../contexts/ProfileContext";
 
 export default function ItemDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { items, deleteItem, updateItem } = useItems();
   const { addToCart } = useCart();
+  const { isOwner } = useProfile();
 
   const item = items.find((i) => i.id === id);
 
@@ -149,22 +151,26 @@ export default function ItemDetails() {
             Add to Cart
           </Button>
 
-          <Button
-            className="rounded-pill px-3"
-            style={{ background: "#2b6cb0", border: "none" }}
-            onClick={openEditModal}
-          >
-            Edit
-          </Button>
+          {isOwner && (
+            <>
+              <Button
+                className="rounded-pill px-3"
+                style={{ background: "#2b6cb0", border: "none" }}
+                onClick={openEditModal}
+              >
+                Edit
+              </Button>
 
-          <Button
-            variant="outline-danger"
-            className="rounded-pill px-3"
-            onClick={handleDelete}
-            disabled={!navigator.onLine}
-          >
-            <FaTrash />
-          </Button>
+              <Button
+                variant="outline-danger"
+                className="rounded-pill px-3"
+                onClick={handleDelete}
+                disabled={!navigator.onLine}
+              >
+                <FaTrash />
+              </Button>
+            </>
+          )}
         </div>
       </Card.Body>
     </Card>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -10,6 +10,9 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
+  const [role, setRole] = useState("owner"); // "owner" or "staff"
+  const [inviteCode, setInviteCode] = useState(""); // For staff only
+
   const navigate = useNavigate();
   const { signup } = useAuth();
 
@@ -18,7 +21,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, role, inviteCode);
       toast.success("Account created!");
       navigate("/login", { replace: true });
     } catch (err) {
@@ -83,7 +86,7 @@ export default function Signup() {
         >
           <div className="card-body px-4 px-sm-5 py-4 py-sm-4">
             {/* Header */}
-            <div className="text-center mb-4">
+            <div className="text-center mb-5">
               <img
                 src="/Polar-logo.png"
                 alt="Polar Inventory"
@@ -125,6 +128,34 @@ export default function Signup() {
                 >
                   Create an account to unlock premium features
                 </span>
+              </div>
+            </div>
+
+            {/* Owner and Staff toggle */}
+            <div className="mb-4">
+              <div className="d-flex justify-content-center">
+                <div className="btn-group w-100" role="group">
+                  <button
+                    type="button"
+                    className={`btn ${role === "owner" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => setRole("owner")}
+                  >
+                    Owner
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${role === "staff" ? "btn-primary" : "btn-outline-primary"}`}
+                    onClick={() => setRole("staff")}
+                  >
+                    Staff
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-center text-muted small mt-2">
+                {role === "owner"
+                  ? "Create and manage your own business"
+                  : "Join an existing business with invite code"}
               </div>
             </div>
 
@@ -200,6 +231,24 @@ export default function Signup() {
                   </button>
                 </div>
               </div>
+
+              {role === "staff" && (
+                <div className="mb-3">
+                  <label className="form-label small fw-medium text-secondary">
+                    Invite Code
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter business invite code"
+                    value={inviteCode}
+                    onChange={(e) =>
+                      setInviteCode(e.target.value.toUpperCase())
+                    }
+                    required
+                  />
+                </div>
+              )}
 
               {/* CTA */}
               <div className="d-grid">

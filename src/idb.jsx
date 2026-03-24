@@ -22,7 +22,7 @@ function openDB() {
         { name: STORE_NAMES.INVOICES, keyPath: "id" },
         { name: STORE_NAMES.SYNC_QUEUE, keyPath: "queueId" },
         { name: STORE_NAMES.CART, keyPath: "id" },
-        { name: STORE_NAMES.HISTORY_CACHE, keyPath: "month" },
+        { name: STORE_NAMES.HISTORY_CACHE, keyPath: "id" },
       ];
 
       stores.forEach((s) => {

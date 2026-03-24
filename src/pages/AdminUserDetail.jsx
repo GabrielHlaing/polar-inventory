@@ -54,7 +54,7 @@ export default function AdminUserDetail() {
 
     const d = iso.toISOString().slice(0, 10);
     const t = `${String(iso.getHours()).padStart(2, "0")}:${String(
-      iso.getMinutes()
+      iso.getMinutes(),
     ).padStart(2, "0")}`;
 
     setPickedDate(d);
@@ -133,11 +133,18 @@ export default function AdminUserDetail() {
       <FabBack />
       <h1 className="fw-bold mb-4">User Details</h1>
 
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-sm border-0" style={{ background: "#ced7e8" }}>
         <Card.Body>
           {/* Header */}
           <div className="mb-4">
-            <h6 className="fw-bold mb-1">{user.email}</h6>
+            <h6 className="fw-bold mb-1">
+              {user.email}
+              {user.role === "staff" && (
+                <Badge bg="primary" text="light" className="ms-2">
+                  Staff
+                </Badge>
+              )}
+            </h6>
           </div>
 
           {/* Info grid */}
@@ -180,7 +187,7 @@ export default function AdminUserDetail() {
                           hour: "2-digit",
                           minute: "2-digit",
                           hour12: true,
-                        }
+                        },
                       )
                     : "—"}
                 </div>

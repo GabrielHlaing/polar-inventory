@@ -8,13 +8,16 @@ const HistoryContext = createContext();
 export function HistoryProvider({ children }) {
   const [historyCache, setHistoryCache] = useState({});
 
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, loading: profileLoading, businessId } = useProfile();
 
   // --------------------------------------------
   // Fetch invoices (ONLINE first, but uses IDB when offline)
   // --------------------------------------------
   const fetchInvoicesByMonth = async (year, month) => {
-    const key = `${year}-${String(month).padStart(2, "0")}`;
+    if (!businessId) return [];
+
+    const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+    const key = `${businessId}_${monthKey}`;
 
     // --------------------------------------------
     // 1️⃣ If offline → load from IndexedDB only
@@ -56,7 +59,7 @@ export function HistoryProvider({ children }) {
     // --------------------------------------------
     // 4️⃣ Build date range
     // --------------------------------------------
-    const monthStart = `${key}-01`;
+    const monthStart = `${monthKey}-01`;
     const nextMonth =
       month === 12
         ? `${year + 1}-01-01`
@@ -68,6 +71,7 @@ export function HistoryProvider({ children }) {
     const { data, error } = await supabase
       .from("invoices")
       .select("*, history(*)")
+      .eq("business_id", businessId)
       .gte("created_at", monthStart)
       .lt("created_at", nextMonth);
 
@@ -99,7 +103,7 @@ export function HistoryProvider({ children }) {
     // 7️⃣ Save to IndexedDB
     // --------------------------------------------
     await idbPut(STORE_NAMES.HISTORY_CACHE, {
-      month: key,
+      id: key,
       invoices: data,
     });
 
@@ -119,7 +123,9 @@ export function HistoryProvider({ children }) {
   // Update invoice in RAM + IDB
   // --------------------------------------------
   const updateInvoiceInCache = async (invoice) => {
-    const key = invoice.created_at.slice(0, 7);
+    const monthKey = invoice.created_at.slice(0, 7);
+    const key = `${businessId}_${monthKey}`;
+
     const monthData = historyCache[key];
 
     // If month not loaded yet, do nothing (auto-refresh will handle it)
@@ -140,7 +146,7 @@ export function HistoryProvider({ children }) {
 
     // IDB update
     await idbPut(STORE_NAMES.HISTORY_CACHE, {
-      month: key,
+      id: key,
       invoices: updatedInvoices,
     });
   };
@@ -176,7 +182,7 @@ export function HistoryProvider({ children }) {
         updatedQty -= Number(item.qty_change); // purchase deleted → subtract
         if (updatedQty < 0)
           throw new Error(
-            `Cannot delete invoice: inventory ${item.inventory_id} would go negative`
+            `Cannot delete invoice: inventory ${item.inventory_id} would go negative`,
           );
       }
 
@@ -199,13 +205,13 @@ export function HistoryProvider({ children }) {
     const newCache = {};
     for (const key in historyCache) {
       const filtered = historyCache[key].invoices.filter(
-        (inv) => inv.id !== invoiceId
+        (inv) => inv.id !== invoiceId,
       );
 
       newCache[key] = { fetched: true, invoices: filtered };
 
       await idbPut(STORE_NAMES.HISTORY_CACHE, {
-        month: key,
+        id: key,
         invoices: filtered,
       });
     }
@@ -244,7 +250,7 @@ export function HistoryProvider({ children }) {
     if (oldHistoryRes.error) return { error: oldHistoryRes.error };
 
     const oldHistoryMap = Object.fromEntries(
-      oldHistoryRes.data.map((h) => [h.id, h])
+      oldHistoryRes.data.map((h) => [h.id, h]),
     );
 
     // ✅ use safeHistory everywhere
@@ -276,7 +282,7 @@ export function HistoryProvider({ children }) {
         if (updatedInvQty < 0) {
           return {
             error: new Error(
-              `Not enough stock for inventory item ${newItem.inventory_id}`
+              `Not enough stock for inventory item ${newItem.inventory_id}`,
             ),
           };
         }
@@ -306,7 +312,7 @@ export function HistoryProvider({ children }) {
 
     const existingInvoice =
       historyCache[invoiceUpdate.created_at.slice(0, 7)]?.invoices.find(
-        (i) => i.id === id
+        (i) => i.id === id,
       ) || {};
 
     const finalInvoice = {
@@ -347,7 +353,7 @@ export function HistoryProvider({ children }) {
 
     window.addEventListener("online", fetchLastMonth);
     return () => window.removeEventListener("online", fetchLastMonth);
-  }, [profileLoading, profile?.id]);
+  }, [profileLoading, businessId]);
 
   return (
     <HistoryContext.Provider

@@ -1,6 +1,7 @@
 // src/contexts/CartContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { idbGet, idbPut, idbDelete, STORE_NAMES } from "../idb";
+import { useProfile } from "./ProfileContext";
 
 const CartContext = createContext();
 // eslint-disable-next-line react-refresh/only-export-components
@@ -8,19 +9,24 @@ export const useCart = () => useContext(CartContext);
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
+  const { businessId } = useProfile();
+  const cartKey = businessId ? `cart_${businessId}` : "cart_temp";
 
   // Load once
   useEffect(() => {
     async function load() {
-      const saved = await idbGet(STORE_NAMES.CART, "cart");
+      if (!businessId) return;
+      const saved = await idbGet(STORE_NAMES.CART, cartKey);
+
       if (saved?.items) setCart(saved.items);
     }
     load();
-  }, []);
+  }, [businessId]);
 
   // Save only when changed
   useEffect(() => {
-    idbPut(STORE_NAMES.CART, { id: "cart", items: cart });
+    if (!businessId) return;
+    idbPut(STORE_NAMES.CART, { id: cartKey, items: cart });
   }, [cart]);
 
   function addToCart(item) {
@@ -44,7 +50,7 @@ export function CartProvider({ children }) {
     setCart([]);
 
     // Remove the IndexedDB CART entry
-    await idbDelete(STORE_NAMES.CART, "cart");
+    await idbDelete(STORE_NAMES.CART, cartKey);
   }
 
   const totalCount = cart.reduce((s, i) => s + i.qty, 0);
