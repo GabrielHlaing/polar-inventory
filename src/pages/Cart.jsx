@@ -142,6 +142,7 @@ export default function CartPage() {
       id: invoiceId,
       business_id: businessId,
       user_id: user.id,
+      created_by_name: user.user_metadata?.name || user.email,
       total_amount: total,
       invoice_number: invoice,
       type,

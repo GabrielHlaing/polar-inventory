@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import * as Fa from "react-icons/fa";
 import * as Bs from "react-icons/bs";
 import FabBack from "../components/FabBack";
+import { useAuth } from "../contexts/AuthContext";
 
 /* ---------- icon whitelist (expense-related only) ---------- */
 const ICONS = {
@@ -39,6 +40,7 @@ const ICONS = {
 const getIcon = (iconName) => ICONS[iconName] || null;
 
 export default function Expenses() {
+  const { user } = useAuth();
   const { profile, businessId, isPremium, isOwner } = useProfile();
 
   const [categories, setCategories] = useState([]);
@@ -131,6 +133,7 @@ export default function Expenses() {
       business_id: businessId,
       user_id: profile.id,
       category_id: categoryId,
+      created_by_name: user.user_metadata?.name || user.email,
       amount,
       note,
     });
@@ -238,6 +241,12 @@ export default function Expenses() {
                 <div className="flex-grow-1">
                   <div className="fw-semibold">
                     {e.expense_categories?.name}
+
+                    {isOwner && (
+                      <small className="ms-2 text-muted">
+                        • by {e.created_by_name || "Staff"}
+                      </small>
+                    )}
                   </div>
 
                   {e.note && (
@@ -294,7 +303,8 @@ export default function Expenses() {
                   </option>
                 ))}
               </Form.Select>
-              {isPremium &&
+              {isOwner &&
+                isPremium &&
                 selectedCategory &&
                 (() => {
                   const cat = categories.find((c) => c.id === selectedCategory);

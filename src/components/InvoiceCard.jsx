@@ -141,7 +141,14 @@ export default function InvoiceCard({
             <div className="fw-bold fs-6">
               Invoice #{invoice.invoice_number}
             </div>
-            <small className="text-muted">{formattedDateTime}</small>
+            <small className="text-muted">
+              {formattedDateTime}
+              {isOwner && (
+                <span className="ms-2">
+                  • by {invoice.created_by_name || "Staff"}
+                </span>
+              )}
+            </small>
           </div>
 
           <div className="text-end">

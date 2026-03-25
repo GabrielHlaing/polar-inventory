@@ -6,6 +6,9 @@ import ios2 from "./ios2.png";
 import ios3 from "./ios3.png";
 import desktop1 from "./desktop1.png";
 import desktop2 from "./desktop2.png";
+import staff1 from "./staff1.png";
+import staff2 from "./staff2.png";
+import staff3 from "./staff3.png";
 import profile1 from "./profile1.png";
 import profile2 from "./profile2.png";
 import profile3 from "./profile3.png";
@@ -65,6 +68,18 @@ export const tutorialData = [
       "Profile ထဲမှ Change Password ကို အသုံးပြုပြီး Password အပြောင်းအလဲ ပြုလုပ်နိုင်ပါသည်။",
     ],
     image: [profile1, profile2, profile3],
+  },
+  {
+    id: "staff",
+    title: "Staff Account ဖွင့်နည်း",
+    steps: [
+      "ပထမဆုံး Owner Account Dashboard မှ Staff Panel ကို ဝင်ပါ။",
+      "Generate Code ကို နှိပ်ပါ။ Code ကို Staff Account ဖွင့်မည့် Staff ကို မှတ်သားထားပါစေ။",
+      "New Account ဖွင့်မှာ ဖြစ်တဲ့အတွက် Sign Up ကိုဝင်ပါ။ Staff Button ကို နှိပ်ပါ။",
+      "Staff Account ဖြစ်တဲ့အတွက် Staff ရဲ့ Name, Email, Password နဲ့ မှတ်ထားတဲ့ Code ကိုဖြည့်ပါ။ Owner Accountနဲ့ချိတ်ပြီးပါပြီ။",
+      "NOTE : Staff Account ဟာ Owner ရဲ့ Control အောက်မှာရှိတဲ့အတွက် Code Generate လုပ်တာ၊ Inventory နဲ့ Invoice တွေ Edit လုပ်တာတွေ လုပ်လိုမရပါဘူး။ Owner တစ်ယောက်ထဲကပဲ ပြုပြင်လိုရပါတယ်။",
+    ],
+    image: [staff1, staff2, staff3],
   },
   {
     id: "inventory-setup",
