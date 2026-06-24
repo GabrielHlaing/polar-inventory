@@ -508,7 +508,7 @@ export default function CartPage() {
             <thead className="bg-light">
               <tr>
                 <th className="ps-4">Item</th>
-                <th style={{ width: 140 }}>Quantity</th>
+                <th style={{ width: type === "sale" ? 260 : 140 }}>Quantity</th>
                 {type === "purchase" && <th>Purchase Price</th>}
                 {type === "purchase" && <th>Sale Price</th>}
                 {type === "purchase" && <th>Mfg Date</th>}
@@ -560,12 +560,14 @@ export default function CartPage() {
                       >
                         <FaPlus size={10} />
                       </Button>
+
+                      {type === "sale" && (
+                        <small className="text-success ms-2">
+                          Available:{" "}
+                          {items.find((i) => i.id === c.id)?.qty ?? 0}
+                        </small>
+                      )}
                     </div>
-                    {type === "sale" && (
-                      <small className="text-success">
-                        Available: {items.find((i) => i.id === c.id)?.qty ?? 0}
-                      </small>
-                    )}
                   </td>
                   {type === "purchase" ? (
                     <>
