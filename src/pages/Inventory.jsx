@@ -35,7 +35,7 @@ export default function Inventory() {
     str
       ? String(str)
           .toLowerCase()
-          .replace(/[^a-z0-9]/gi, "")
+          .replace(/[^\p{L}\p{N}]/gu, "")
       : "";
 
   function getExpColor(exp) {

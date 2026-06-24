@@ -294,7 +294,7 @@ export default function PrintInvoice() {
             <Card.Body className="p-2">
               <div
                 className="fw-semibold small mb-1"
-                style={{ color: shop.color }}
+                style={{ fontFamily: shop.font, color: shop.color }}
               >
                 Bill to
               </div>
@@ -367,6 +367,7 @@ export default function PrintInvoice() {
           <div
             className="text-center small pt-2"
             style={{
+              fontFamily: shop.font,
               color: shop.color,
               borderTop: `1px dashed ${tint(shop.color, "33")}`,
             }}
